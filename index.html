@@ -520,14 +520,14 @@ function pubAI(){var el=pubEl('pub-ai-out');if(!el)return;
   }).catch(function(){el.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px">Could not reach AI — try again.</div>'})}
 function pubEmail(){var nm=pubEl('c-name').value||'',em=pubEl('c-email').value||'',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,curR=+pubEl('c-cur').value||3.20,curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,+pubEl('c-tx').value||0),sav=curMo-r.mo,mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
   window.open('mailto:'+em+'?subject='+encodeURIComponent('NexusPay Proposal for '+(nm||'Your Business'))+'&body='+encodeURIComponent((nm||'Business Owner')+',\n\nThank you for your interest in NexusPay.\n\nIndustry: '+vt+'\nVolume: $'+pubFmt(vol,0)+'/mo\nCurrent: '+curR.toFixed(2)+'% ($'+pubFmt(curMo)+'/mo)\n\nRecommended: '+mdl+'\nNexusPay: '+r.eff.toFixed(2)+'% ($'+pubFmt(r.mo)+'/mo)\n'+(sav>0?'Annual Savings: $'+pubFmt(sav*12,0)+'\n':'')+'\nBook a call: https://outlook.office.com/book/NexusPayWebsiteBookings@nexuspayservices.com\n\nNexusPay — Veteran-Owned\n(720) 689-7272 | nexuspayservices.com'))}
-function pubPDF(){var j=new(window.jspdf.jsPDF),nm=pubEl('c-name').value||'Your Business',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,tx=+pubEl('c-tx').value||0,curR=+pubEl('c-cur').value||3.20,zip=pubEl('c-zip').value||'',curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,tx),sav=curMo-r.mo,mkt=pubMktR(zip),mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
+function pubPDF(){try{if(!window.jspdf||!window.jspdf.jsPDF){pubToast('PDF library not loaded - please refresh the page');return;}var j=new(window.jspdf.jsPDF),nm=pubEl('c-name').value||'Your Business',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,tx=+pubEl('c-tx').value||0,curR=+pubEl('c-cur').value||3.20,zip=pubEl('c-zip').value||'',curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,tx),sav=curMo-r.mo,mkt=pubMktR(zip),mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
   j.setFontSize(22);j.setTextColor(11,29,58);j.text('NEXUSPAY',20,25);j.setFontSize(10);j.setTextColor(107,130,158);j.text('Veteran-Owned Merchant Services | '+new Date().toLocaleDateString(),20,33);j.setDrawColor(26,109,212);j.setLineWidth(.5);j.line(20,37,190,37);
   var y=48;j.setFontSize(13);j.setTextColor(11,29,58);j.text('Proposal for '+nm,20,y);y+=12;j.setFontSize(10);j.setTextColor(80,80,110);
   [['Industry',vt],['Zip',zip||'—'],['Volume','$'+pubFmt(vol,0)+'/mo'],['Transactions',pubFmt(tx,0)],['Market Avg',mkt.toFixed(2)+'%'],['Current Rate',curR.toFixed(2)+'%'],['Current Cost','$'+pubFmt(curMo)+'/mo']].forEach(function(p){j.text(p[0]+':',20,y);j.setTextColor(11,29,58);j.text(p[1],75,y);j.setTextColor(80,80,110);y+=7});
   y+=6;j.setFontSize(14);j.setTextColor(12,155,138);j.text('Recommended: '+mdl,20,y);y+=9;j.setFontSize(10);j.setTextColor(11,29,58);j.text('NexusPay Rate: '+r.eff.toFixed(2)+'%',20,y);y+=7;j.text('NexusPay Cost: $'+pubFmt(r.mo)+'/mo',20,y);y+=7;
   if(sav>0){j.setTextColor(22,163,74);j.text('Annual Savings: $'+pubFmt(sav*12,0),20,y);y+=12}
   j.setFontSize(8);j.setTextColor(148,167,189);y+=8;j.text('Subject to underwriting. NexusPay, LLC — Veteran-Owned — (720) 689-7272 — nexuspayservices.com',20,y);
-  j.save('NexusPay-Proposal-'+nm.replace(/[^a-zA-Z0-9]/g,'-')+'.pdf');pubToast('PDF saved')}
+  j.save('NexusPay-Proposal-'+nm.replace(/[^a-zA-Z0-9]/g,'-')+'.pdf');pubToast('PDF saved')}catch(e){if(window.console&&console.error)console.error('pubPDF error:',e);pubToast('PDF generation failed - '+(e&&e.message?e.message:'unknown error'));}}
 function pubCopy(){var nm=pubEl('c-name').value||'Your Business',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,curR=+pubEl('c-cur').value||3.20,curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,+pubEl('c-tx').value||0),sav=curMo-r.mo,mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
   navigator.clipboard.writeText('NEXUSPAY PROPOSAL\n'+nm+' | '+new Date().toLocaleDateString()+'\n\n'+vt+' · $'+pubFmt(vol,0)+'/mo\nCurrent: '+curR.toFixed(2)+'% ($'+pubFmt(curMo)+'/mo)\n\n'+mdl+': '+r.eff.toFixed(2)+'% ($'+pubFmt(r.mo)+'/mo)\n'+(sav>0?'Savings: $'+pubFmt(sav*12,0)+'/yr\n':'')+'\nNexusPay — Veteran-Owned\n(720) 689-7272 | nexuspayservices.com').then(function(){pubToast('Copied')})}
 function pubLead(nm,vt,vol,curR,r,zip){var em=pubEl('c-email').value||'',ph=pubEl('c-phone').value||'';if(!em&&!nm)return;
@@ -852,8 +852,12 @@ function App(){
       const r=await fetch(API+"/api/quotes/analyze",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify(buildPayload())});
       if(!r.ok){const b=await r.json().catch(()=>({}));throw new Error((b.detail?(typeof b.detail==="string"?b.detail:JSON.stringify(b.detail)):"Analysis failed")||"Analysis failed ("+r.status+")");}
       const d=await r.json();
-      const txt=d.analysis||d.proposal||d.recommendation||d.result||JSON.stringify(d,null,2);
-      setProposal(txt);setQStatus({type:"ok",msg:"Proposal generated!"});
+      // Backend returns {analysis: {dict}, validation, residuals, ...}. Store the dict.
+      let proposalData;
+      if(d.analysis&&typeof d.analysis==="object"){proposalData=d.analysis;}
+      else if(typeof d.analysis==="string"){proposalData=d.analysis;}
+      else{proposalData=d.proposal||d.recommendation||d.result||JSON.stringify(d,null,2);}
+      setProposal(proposalData);setQStatus({type:"ok",msg:"Proposal generated!"});
     }catch(e){setQStatus({type:"err",msg:e.message});}
   };
 
@@ -1025,13 +1029,66 @@ function App(){
         React.createElement("button",{className:"act-btn act-view",onClick:viewQuote},"\uD83D\uDCC4 View Quote"),
         React.createElement("button",{className:"act-btn act-email",onClick:emailProposal},"\u2709\uFE0F Email Proposal")),
       qStatus&&React.createElement("div",{className:"act-status "+qStatus.type},qStatus.msg),
-      proposal&&React.createElement("div",{className:"proposal-box"},proposal)),
+      proposal&&renderProposal(proposal,isAdmin)),
     isAdmin&&React.createElement("div",{className:"floor-ref"},React.createElement("div",{className:"floor-label"},"EMPLOYEE MINIMUM PRICING FLOORS"),React.createElement("div",{className:"floor-grid"},PROGRAMS.filter(p=>!p.id.includes("70")).map(p=>{const f=FLOORS[p.id];return React.createElement("div",{key:p.id},React.createElement("b",null,p.short+": "),f.markup.toFixed(2)+"%"+(f.auth?" + $"+f.auth.toFixed(2):"")+(f.maxTotal?" (max "+f.maxTotal.toFixed(2)+"%)":""));}))),
     React.createElement("div",{className:"footer"},"NexusPay, LLC \u2014 Veteran-Owned Merchant Services \u2014 nexuspayservices.com \u2014 (720) 689-7272"));
 }
 function mkI(l,v,fn,t,pfx,sfx){return React.createElement("div",null,React.createElement("label",{className:"lbl"},l),React.createElement("div",{className:"inp-row"},pfx&&React.createElement("span",{className:"inp-pfx"},pfx),React.createElement("input",{className:"inp",type:t||"number",value:v,onChange:e=>fn(t==="text"?e.target.value:e.target.value)}),sfx&&React.createElement("span",{className:"inp-sfx"},sfx)))}
 function nb(l,v,s,c){return React.createElement("div",null,React.createElement("div",{className:"num-lbl"},l),React.createElement("div",{className:"num-val",style:{color:c}},v),s&&React.createElement("div",{className:"num-sub"},s))}
-ReactDOM.render(React.createElement(App),document.getElementById("app"));
+
+// renderProposal: handles AI proposal data which may be a dict (from backend) or string (fallback).
+function renderProposal(p,isAdmin){
+  if(!p)return null;
+  if(typeof p==="string"){return React.createElement("div",{className:"proposal-box"},p);}
+  // Dict case: structured render. Backend keys: recommended_program, reasoning,
+  // deal_strength, competitive_position, negotiation_tips, risk_factors, merchant_pitch,
+  // internal_notes, optimal_markup_pct, annual_nexuspay_value, win_probability,
+  // multi_location_strategy, _provider, _providerCount, _confidence, _errors
+  const sec=(label,val,emphasize)=>{
+    if(val===undefined||val===null||val==="")return null;
+    const valStr=typeof val==="object"?JSON.stringify(val,null,2):String(val);
+    return React.createElement("div",{key:label,style:{marginBottom:12}},
+      React.createElement("div",{style:{fontSize:10,fontWeight:700,letterSpacing:".08em",color:"var(--teal)",fontFamily:"var(--mono)",marginBottom:4}},label.toUpperCase()),
+      React.createElement("div",{style:{fontSize:emphasize?14:12,fontWeight:emphasize?600:400,color:"var(--t1)",lineHeight:1.6,whiteSpace:"pre-wrap"}},valStr));
+  };
+  const children=[];
+  if(p._providerCount){
+    children.push(React.createElement("div",{key:"hdr",style:{fontSize:9,color:"var(--teal)",fontWeight:700,fontFamily:"var(--mono)",letterSpacing:".08em",marginBottom:10}},"AI CONSENSUS \u00B7 "+p._providerCount+" PROVIDER"+(p._providerCount>1?"S":"")+(p._confidence?" \u00B7 "+String(p._confidence).toUpperCase():"")));
+  }
+  children.push(sec("Recommended Program",p.recommended_program,true));
+  children.push(sec("Merchant Pitch",p.merchant_pitch));
+  children.push(sec("Reasoning",p.reasoning));
+  children.push(sec("Competitive Position",p.competitive_position));
+  if(p.optimal_markup_pct!==undefined&&p.optimal_markup_pct!==null)children.push(sec("Optimal Markup",p.optimal_markup_pct+"%"));
+  if(p.annual_nexuspay_value!==undefined&&p.annual_nexuspay_value!==null)children.push(sec("Annual NexusPay Value","$"+p.annual_nexuspay_value));
+  if(p.win_probability!==undefined&&p.win_probability!==null)children.push(sec("Win Probability",p.win_probability));
+  children.push(sec("Multi-Location Strategy",p.multi_location_strategy));
+  children.push(sec("Negotiation Tips",p.negotiation_tips));
+  children.push(sec("Deal Strength",p.deal_strength));
+  children.push(sec("Risk Factors",p.risk_factors));
+  if(isAdmin)children.push(sec("Internal Notes",p.internal_notes));
+  return React.createElement("div",{className:"proposal-box"},children.filter(Boolean));
+}
+
+// ErrorBoundary: catches render-time exceptions, shows recoverable message instead of blank page
+class ErrorBoundary extends React.Component{
+  constructor(props){super(props);this.state={hasError:false,errorMsg:""};}
+  static getDerivedStateFromError(err){return{hasError:true,errorMsg:String(err&&err.message||err||"Unknown error")};}
+  componentDidCatch(err,info){if(window.console&&console.error)console.error("ErrorBoundary caught:",err,info);}
+  render(){
+    if(this.state.hasError){
+      return React.createElement("div",{style:{padding:30,maxWidth:600,margin:"40px auto",fontFamily:"system-ui,sans-serif",color:"#0f1a2e"}},
+        React.createElement("h2",{style:{color:"#b91c1c",marginBottom:12}},"Something went wrong"),
+        React.createElement("p",{style:{marginBottom:16}},"The page encountered an unexpected error. Your session is preserved."),
+        React.createElement("p",{style:{fontFamily:"monospace",fontSize:12,background:"#f1f5f9",padding:10,borderRadius:4,marginBottom:16}},this.state.errorMsg),
+        React.createElement("button",{onClick:()=>{this.setState({hasError:false,errorMsg:""});},style:{padding:"8px 16px",background:"#1a6dd4",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",marginRight:8}},"Try again"),
+        React.createElement("button",{onClick:()=>{window.location.reload();},style:{padding:"8px 16px",background:"#64748b",color:"#fff",border:"none",borderRadius:4,cursor:"pointer"}},"Reload page"));
+    }
+    return this.props.children;
+  }
+}
+
+ReactDOM.render(React.createElement(ErrorBoundary,null,React.createElement(App)),document.getElementById("app"));
 </script>
 </body>
 </html>
