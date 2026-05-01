@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>NexusPay Pricing Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#f5f7fa;--card:#ffffff;--card2:#f0f4f8;
+--b0:#e8edf3;--b1:#d4dce8;--b2:#b8c6d9;
+--navy:#0b1d3a;--blue:#1a6dd4;--teal:#0c9b8a;--green:#16a34a;
+--red:#dc2626;--amber:#d97706;--purple:#7c3aed;
+--t1:#0f1a2e;--t2:#3d5068;--t3:#6b829e;--t4:#94a7bd;
+--mono:'JetBrains Mono','SF Mono','Fira Code',monospace;
+--sans:'DM Sans','Inter',system-ui,sans-serif;
+--display:'Bebas Neue','Oswald',sans-serif;
+--shadow:0 1px 3px rgba(11,29,58,.06),0 4px 12px rgba(11,29,58,.04);
+--shadow-lg:0 4px 16px rgba(11,29,58,.08),0 8px 32px rgba(11,29,58,.04);
+}
+html{background:var(--bg);color:var(--t1);font-family:var(--sans)}
+
+/* ═══════════════════════════════════════════════════
+   CUSTOMER VIEW — Apple-white clean design
+   Scoped to #public-view only. Internal tool unchanged.
+   ═══════════════════════════════════════════════════ */
+#public-view{background:#ffffff;color:#1d1d1f;font-family:'DM Sans',system-ui,-apple-system,sans-serif}
+#public-view .panel{background:#ffffff;border:none;box-shadow:none;border-radius:0;padding:0 0 32px;margin-bottom:0;border-bottom:1px solid #e5e5ea}
+#public-view .panel-label{font-family:'Bebas Neue',sans-serif;font-size:13px;color:#86868b;letter-spacing:.1em}
+#public-view .lbl{color:#86868b;font-size:11px;font-weight:500;letter-spacing:.03em;text-transform:uppercase}
+#public-view .inp{background:#f5f5f7;border:none;border-radius:10px;color:#1d1d1f;font-size:17px;font-family:'DM Sans',system-ui,sans-serif;padding:12px 14px;min-height:48px;transition:box-shadow .15s}
+#public-view .inp:focus{outline:none;box-shadow:0 0 0 3px rgba(0,198,255,.3);background:#fff}
+#public-view select.inp{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2386868b' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:#f5f5f7;padding-right:36px}
+#public-view .model-tabs{gap:8px}
+#public-view .mtab{border:none;background:#f5f5f7;color:#1d1d1f;border-radius:980px;padding:10px 20px;font-size:14px;font-weight:600;box-shadow:none;font-family:'DM Sans',system-ui,sans-serif}
+#public-view .mtab:hover{background:#e8e8ed}
+#public-view .mtab.active{background:#00c6ff;color:#fff}
+#public-view .best-banner{background:#f5f5f7;border:none;border-radius:16px;box-shadow:none}
+#public-view .bb-tag{color:#00c6ff}
+#public-view .bb-title{color:#1d1d1f}
+#public-view .bb-val{color:#16a34a}
+#public-view .rcard{border:none;background:#f5f5f7;border-radius:16px;box-shadow:none;padding:20px}
+#public-view .rcard.best{background:linear-gradient(135deg,#e8faf5,#eef6ff)}
+#public-view .act-btn{border:none;border-radius:980px;padding:12px 24px;font-size:14px;font-weight:600;min-height:48px;font-family:'DM Sans',system-ui,sans-serif}
+#public-view .act-gen{background:#00c6ff;color:#fff;border-radius:980px}
+#public-view .act-gen:hover{background:#00a8e0}
+#public-view .act-email,.act-view{background:#f5f5f7;color:#1d1d1f;border-radius:980px}
+#public-view .proposal-box{background:#f5f5f7;border:none;border-radius:16px}
+#public-view .g2{gap:16px}
+#public-view .g3{gap:16px}
+body{min-height:100vh}
+input,select,textarea,button{font-family:inherit}
+input[type=range]{accent-color:var(--blue);width:100%}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e8f0fe,#f5f7fa,#e6f7f2)}
+.login-box{width:380px;background:var(--card);border:1px solid var(--b1);border-radius:16px;padding:36px;box-shadow:var(--shadow-lg)}
+.login-title{font-family:var(--display);font-size:32px;color:var(--navy);letter-spacing:.08em;text-align:center}
+.login-sub{font-size:12px;color:var(--t3);letter-spacing:.06em;text-align:center;margin-top:4px}
+.login-err{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin:16px 0 0;font-size:12px;color:var(--red);display:none;word-break:break-word}
+.fld{width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--b1);border-radius:8px;color:var(--t1);font-size:16px;font-family:var(--mono);margin-bottom:10px;transition:border .15s;min-height:48px;-webkit-appearance:none}
+.fld:focus{outline:none;border-color:var(--blue);background:#fff}
+select.fld{appearance:auto}
+.btn-login{width:100%;padding:14px 0;background:linear-gradient(135deg,var(--blue),var(--teal));border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:opacity .15s;min-height:48px;-webkit-appearance:none}
+.btn-login:hover{opacity:.92}
+.btn-login:disabled{opacity:.5}
+.shell{max-width:1100px;margin:0 auto;padding:0 16px 60px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--b0);margin-bottom:20px}
+.hdr-brand{font-family:var(--display);font-size:24px;color:var(--navy);letter-spacing:.08em}
+.hdr-badge{font-size:10px;color:var(--t3);letter-spacing:.06em;background:var(--card2);padding:4px 10px;border-radius:5px;border:1px solid var(--b0);margin-left:10px}
+.role-pill{font-size:9px;font-family:var(--mono);padding:3px 8px;border-radius:4px;margin-right:8px;font-weight:600}
+.role-admin{color:var(--blue);background:#e8f0fe;border:1px solid #bbd4f8}
+.role-emp{color:var(--teal);background:#e6f7f2;border:1px solid #a7e0d0}
+.btn-out{font-size:11px;color:var(--t3);background:none;border:none;cursor:pointer}
+.panel{background:var(--card);border:1px solid var(--b0);border-radius:12px;padding:22px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-label{font-family:var(--display);font-size:15px;color:var(--t3);letter-spacing:.08em;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.lbl{display:block;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-weight:600}
+.inp{width:100%;padding:9px 11px;background:var(--card2);border:1px solid var(--b1);border-radius:6px;color:var(--t1);font-size:16px;font-family:var(--mono);transition:border .15s;min-height:44px;-webkit-appearance:none;appearance:none}
+.inp:focus{outline:none;border-color:var(--blue);background:#fff}
+select.inp{-webkit-appearance:menulist;appearance:menulist}
+.inp-row{display:flex;align-items:center;gap:4px}
+.inp-pfx,.inp-sfx{color:var(--blue);font-size:11px;font-family:var(--mono);font-weight:600}
+.model-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.mtab{padding:9px 16px;border-radius:8px;border:1px solid var(--b1);background:var(--card);color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.mtab:hover{border-color:var(--b2)}
+.mtab.active{border-color:var(--blue);background:#e8f0fe;color:var(--blue)}
+.group-tabs{display:flex;gap:6px;margin-bottom:16px}
+.gtab{padding:5px 12px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid var(--b0);background:var(--card);color:var(--t3);cursor:pointer;letter-spacing:.06em;text-transform:uppercase;transition:all .12s}
+.gtab.active{border-color:var(--blue);background:#e8f0fe;color:var(--blue)}
+.slider-row{display:flex;justify-content:space-between;margin-top:5px}
+.slider-edge{font-size:10px;color:var(--t4);font-family:var(--mono)}
+.slider-val{font-size:16px;font-weight:700;color:var(--blue);font-family:var(--mono)}
+.slider-note{font-size:9px;color:var(--t4);font-weight:400}
+.warn-bar{margin-top:12px;padding:8px 14px;background:#fef9ee;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:var(--amber)}
+.best-banner{background:linear-gradient(135deg,#e6f7f2,#e8f0fe);border:1px solid #a7e0d0;border-radius:12px;padding:16px 22px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:var(--shadow)}
+.bb-tag{font-size:9px;color:var(--teal);letter-spacing:.1em;font-family:var(--mono);font-weight:700}
+.bb-title{font-size:17px;font-weight:700;color:var(--navy);margin-top:3px}
+.bb-val{font-size:24px;font-weight:700;color:var(--green);font-family:var(--mono)}
+.bb-val span{font-size:12px;color:var(--t3);font-weight:500}
+.bb-market{font-size:11px;font-weight:600}
+.bb-market.below{color:var(--teal)}
+.bb-market.above{color:var(--red)}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rcard{background:var(--card);border:1px solid var(--b0);border-radius:12px;padding:18px;cursor:pointer;transition:all .15s;box-shadow:var(--shadow)}
+.rcard:hover{border-color:var(--b2);box-shadow:var(--shadow-lg)}
+.rcard.best{border-color:#86d9c6;background:linear-gradient(135deg,#f0fdf8,#f5f9ff)}
+.rcard.below-floor{border-color:#fecaca!important;background:#fef8f8}
+.rcard.expanded{grid-column:1/-1}
+.rc-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.rc-name{display:flex;align-items:center;gap:8px}
+.rc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rc-lbl{font-size:14px;font-weight:600}
+.rc-split{font-size:10px;color:var(--t3);font-family:var(--mono);font-weight:500}
+.badge{font-size:8px;padding:3px 8px;border-radius:4px;font-weight:700;flex-shrink:0}
+.badge-best{color:#fff;background:var(--green)}
+.badge-floor{color:var(--red);border:1px solid #fecaca;background:#fef2f2}
+.nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.num-lbl{font-size:9px;color:var(--t4);letter-spacing:.04em;margin-bottom:3px;font-weight:600;text-transform:uppercase}
+.num-val{font-size:17px;font-weight:700;font-family:var(--mono);line-height:1.1}
+.num-sub{font-size:9px;color:var(--t4);margin-top:2px}
+.detail{margin-top:16px;border-top:1px solid var(--b0);padding-top:16px}
+.detail-expl{font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.6}
+.dtable{width:100%;border-collapse:collapse;font-size:11px}
+.dtable td{padding:6px 0}
+.dtable tr{border-bottom:1px solid var(--b0)}
+.detail-sub{margin-top:12px;font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.floor-ref{margin-top:22px;padding:18px;background:var(--card);border:1px solid var(--b0);border-radius:12px;font-size:11px;color:var(--t3);box-shadow:var(--shadow)}
+.floor-label{font-family:var(--display);font-size:13px;color:var(--t4);letter-spacing:.08em;margin-bottom:10px}
+.floor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px}
+.floor-grid b{color:var(--blue);font-weight:600}
+.footer{text-align:center;margin-top:24px;font-size:10px;color:var(--t4)}
+.actions-panel{background:var(--card);border:1px solid var(--b0);border-radius:12px;padding:22px;margin-top:20px;box-shadow:var(--shadow)}
+.actions-bar{display:flex;gap:10px;flex-wrap:wrap}
+.act-btn{padding:10px 20px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.03em;display:flex;align-items:center;gap:6px}
+.act-btn:hover{opacity:.88}
+.act-btn:disabled{opacity:.45;cursor:default}
+.act-save{background:var(--blue);color:#fff}
+.act-gen{background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff}
+.act-email{background:var(--card2);color:var(--t1);border:1px solid var(--b1)}
+.act-view{background:var(--card2);color:var(--t1);border:1px solid var(--b1)}
+.act-status{margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.5}
+.act-status.ok{background:#f0fdf8;border:1px solid #a7e0d0;color:var(--teal)}
+.act-status.err{background:#fef2f2;border:1px solid #fecaca;color:var(--red)}
+.act-status.loading{background:#e8f0fe;border:1px solid #bbd4f8;color:var(--blue)}
+.proposal-box{margin-top:14px;background:var(--card2);border:1px solid var(--b0);border-radius:10px;padding:18px;font-size:12px;color:var(--t1);line-height:1.7;white-space:pre-wrap;max-height:400px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.upload-zone{border:2px dashed var(--b1);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-top:14px;background:var(--card2)}
+.upload-zone:hover{border-color:var(--blue);background:#e8f0fe}
+.upload-zone.busy{border-color:var(--teal);background:#e6f7f2;pointer-events:none}
+.upload-zone.dragover{border-color:var(--blue);background:#e8f0fe;transform:scale(1.01)}
+.upload-hint{font-size:11px;color:var(--t3);margin-top:4px}
+.upload-status{margin-top:8px;font-size:11px;padding:6px 10px;border-radius:6px;display:inline-block}
+.upload-status.ok{background:#f0fdf8;color:var(--teal);border:1px solid #a7e0d0}
+.upload-status.err{background:#fef2f2;color:var(--red);border:1px solid #fecaca}
+.upload-status.loading{background:#e8f0fe;color:var(--blue);border:1px solid #bbd4f8}
+.upload-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+.upload-act{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:8px;border:1px solid var(--b1);background:var(--card);color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;min-height:40px}
+.upload-act:hover{border-color:var(--blue);color:var(--blue);background:#e8f0fe}
+.upload-act.active{border-color:var(--teal);color:var(--teal);background:#e6f7f2}
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:12px}
+.file-card{background:var(--card);border:1px solid var(--b0);border-radius:8px;overflow:hidden;position:relative;transition:border-color .15s}
+.file-card:hover{border-color:var(--b2)}
+.file-card.extracted{border-color:var(--teal)}
+.file-card.error{border-color:var(--red)}
+.file-thumb{height:80px;display:flex;align-items:center;justify-content:center;background:var(--card2);overflow:hidden}
+.file-thumb img{width:100%;height:100%;object-fit:cover}
+.file-info{padding:6px 8px}
+.file-name{font-size:10px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-size{font-size:9px;color:var(--t4);margin-top:2px}
+.file-status{font-size:8px;font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.file-rm{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);line-height:1}
+.file-rm:hover{background:var(--red)}
+.upload-bar{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px;flex-wrap:wrap}
+.upload-bar-info{font-size:11px;color:var(--t3);font-weight:600}
+.btn-submit-all{padding:10px 22px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;transition:opacity .15s;min-height:40px;letter-spacing:.03em;display:flex;align-items:center;gap:6px}
+.btn-submit-all:hover{opacity:.9}
+.btn-submit-all:disabled{opacity:.45;cursor:default}
+.btn-clear-all{font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:500}
+.camera-panel{margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--b1);background:#000;position:relative}
+.camera-panel video{width:100%;display:block;max-height:280px}
+.camera-bar{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:10px;padding:12px;background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.cam-btn{width:44px;height:44px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,.15);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.cam-btn:hover{background:rgba(255,255,255,.3)}
+.cam-close{border-color:var(--red)!important;background:rgba(220,38,38,.2)!important}
+@keyframes pulse-extract{0%,100%{opacity:1}50%{opacity:.5}}
+@media(max-width:700px){.g3,.results-grid,.g2{grid-template-columns:1fr}.best-banner{flex-direction:column;align-items:flex-start}}
+
+/* ── CROSS-PLATFORM & RESPONSIVE ── */
+
+/* iOS: prevent zoom on input focus (needs >=16px font) */
+@supports (-webkit-touch-callout: none){
+  .fld,.inp,select.inp{font-size:16px!important}
+  input[type=range]{-webkit-appearance:none;height:36px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);margin-top:-9px}
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--b1)}
+}
+
+/* Safe area for notched phones (iPhone X+) */
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.shell{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(60px,env(safe-area-inset-bottom))}
+
+/* Touch-friendly range sliders — all platforms */
+input[type=range]{height:36px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--b1)}
+
+/* Touch-friendly tap targets */
+.mtab,.gtab,.act-btn{min-height:44px;display:flex;align-items:center;justify-content:center}
+.rcard{-webkit-tap-highlight-color:transparent}
+button{-webkit-tap-highlight-color:transparent}
+
+/* ── TABLET (768px and below) ── */
+@media(max-width:768px){
+  .shell{padding-left:12px;padding-right:12px}
+  .g3{grid-template-columns:1fr 1fr;gap:10px}
+  .g2{grid-template-columns:1fr 1fr;gap:10px}
+  .results-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .model-tabs{gap:4px}
+  .mtab{padding:8px 12px;font-size:11px}
+  .best-banner{padding:14px 16px}
+  .bb-title{font-size:15px}
+  .bb-val{font-size:20px}
+  .actions-bar{gap:8px}
+  .act-btn{padding:10px 14px;font-size:11px}
+  .rcard{padding:14px}
+  .num-val{font-size:15px}
+}
+
+/* ── MOBILE (480px and below) ── */
+@media(max-width:480px){
+  .shell{padding-left:10px;padding-right:10px}
+  .hdr-brand{font-size:20px}
+  .hdr-badge{font-size:9px;padding:2px 6px}
+  .g3{grid-template-columns:1fr}
+  .g2{grid-template-columns:1fr}
+  .results-grid{grid-template-columns:1fr}
+  .rcard.expanded{grid-column:1}
+  .panel{padding:16px;border-radius:10px}
+  .panel-label{font-size:13px;margin-bottom:10px}
+  .model-tabs{gap:4px}
+  .mtab{padding:8px 10px;font-size:10px;flex:1 1 auto;min-width:0;text-align:center}
+  .group-tabs{gap:4px;flex-wrap:wrap}
+  .gtab{padding:5px 8px;font-size:9px;flex:1 1 auto;text-align:center}
+  .best-banner{flex-direction:column;align-items:flex-start;padding:12px 14px;gap:8px}
+  .bb-title{font-size:14px}
+  .bb-val{font-size:20px}
+  .bb-market{font-size:10px}
+  .rcard{padding:14px}
+  .rc-lbl{font-size:12px}
+  .nums{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .num-val{font-size:14px}
+  .num-lbl{font-size:8px}
+  .num-sub{font-size:8px}
+  .slider-val{font-size:14px}
+  .detail{padding-top:12px}
+  .detail-expl{font-size:11px}
+  .dtable{font-size:10px}
+  .dtable td{padding:5px 0}
+  .actions-bar{flex-direction:column;gap:8px}
+  .act-btn{width:100%;justify-content:center;padding:12px 16px;font-size:12px}
+  .proposal-box{max-height:300px;font-size:11px;padding:14px}
+  .floor-ref{padding:14px}
+  .floor-grid{grid-template-columns:1fr;gap:4px}
+  .login-box{width:calc(100vw - 32px);max-width:380px;padding:24px}
+  .login-title{font-size:26px}
+  .header{padding:12px 0;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+}
+
+/* ── SMALL PHONES (360px and below) ── */
+@media(max-width:360px){
+  .hdr-brand{font-size:18px}
+  .nums{grid-template-columns:1fr;gap:8px}
+  .num-val{font-size:16px}
+  .mtab{font-size:9px;padding:6px 6px}
+  .bb-val{font-size:18px}
+  .login-box{padding:20px}
+}
+
+/* ── LANDSCAPE PHONE ── */
+@media(max-height:500px) and (orientation:landscape){
+  .login-wrap{padding:20px 0}
+  .login-box{padding:20px}
+  .login-title{font-size:24px}
+}
+
+/* ── DARK MODE (system preference) ── */
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#060e1a;--card:#0b1a2e;--card2:#0f2240;
+    --b0:#0e1f38;--b1:#152840;--b2:#1e3a5f;
+    --t1:#e8f0ff;--t2:#94a8c8;--t3:#5a7090;--t4:#334455;
+    --shadow:0 1px 3px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.15);
+    --shadow-lg:0 4px 16px rgba(0,0,0,.25),0 8px 32px rgba(0,0,0,.15);
+  }
+  .login-wrap{background:linear-gradient(135deg,#060e1a,#0b1a2e)}
+  .login-err{background:rgba(255,68,102,.1);border-color:var(--red)}
+  .btn-login{color:#000}
+  .role-admin{background:rgba(14,240,216,.1);border-color:rgba(14,240,216,.4);color:#0ef0d8}
+  .role-emp{background:rgba(184,240,64,.1);border-color:rgba(184,240,64,.4);color:#b8f040}
+  .mtab.active{background:rgba(26,109,212,.15)}
+  .gtab.active{background:rgba(26,109,212,.15)}
+  .rcard.best{border-color:rgba(14,240,216,.3);background:linear-gradient(135deg,rgba(14,240,216,.04),rgba(26,109,212,.04))}
+  .rcard.below-floor{border-color:var(--red);background:rgba(255,68,102,.04)}
+  .best-banner{background:linear-gradient(135deg,rgba(14,240,216,.08),rgba(26,109,212,.06));border-color:rgba(14,240,216,.25)}
+  .warn-bar{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.2)}
+  .act-email,.act-view{background:var(--card2);color:var(--t1);border-color:var(--b1)}
+  .upload-zone:hover,.upload-zone.dragover{border-color:var(--blue);background:rgba(26,109,212,.08)}
+  .upload-act:hover{background:rgba(26,109,212,.1);border-color:var(--blue)}
+  .upload-act.active{background:rgba(12,155,138,.1);border-color:var(--teal)}
+  .file-card{background:var(--card);border-color:var(--b0)}
+  .file-card.extracted{border-color:var(--teal)}
+  .file-card.error{border-color:var(--red)}
+  .file-thumb{background:var(--card2)}
+  .btn-submit-all{color:#000}
+  .act-status.ok{background:rgba(12,155,138,.1);border-color:rgba(12,155,138,.3);color:var(--teal)}
+  .act-status.err{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.3)}
+  .act-status.loading{background:rgba(26,109,212,.1);border-color:rgba(26,109,212,.3)}
+  .proposal-box{background:var(--card);border-color:var(--b1)}
+}
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- ZOOM CONTROLS -->
+<div class="zoom" role="group" aria-label="Text size" style="position:fixed;top:10px;right:10px;z-index:100;display:flex;gap:2px;background:var(--card);border:1px solid var(--b0);border-radius:8px;padding:2px;box-shadow:var(--shadow)">
+  <button onclick="zf(-1)" style="width:36px;height:36px;border:none;background:transparent;font-size:1rem;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">A−</button>
+  <button onclick="zf(0)" style="width:36px;height:36px;border:none;background:transparent;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">Aa</button>
+  <button onclick="zf(1)" style="width:36px;height:36px;border:none;background:transparent;font-size:1rem;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">A+</button>
+</div>
+<div id="pub-toast" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;z-index:200;display:none;background:#f0fdf8;border:1px solid #a7e0d0;color:var(--teal);box-shadow:var(--shadow)"></div>
+
+<!-- ═══════════════════════════════════════════════
+     CUSTOMER-FACING VIEW (default, no login)
+     ═══════════════════════════════════════════════ -->
+<div id="public-view">
+<div style="max-width:680px;margin:0 auto;padding:16px 16px 48px">
+
+<div style="text-align:center;padding:40px 0 32px">
+  <div style="display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;color:#00c6ff;margin-bottom:12px">★ VETERAN-OWNED · FREE INSTANT ANALYSIS</div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,7vw,52px);color:#1d1d1f;letter-spacing:.04em;line-height:1.05">SEE WHAT YOU <span style="color:#00c6ff">SHOULD</span> BE PAYING</div>
+  <div style="font-size:17px;color:#1d1d1f;margin-top:8px;font-weight:600">The average cost of processing is <span style="color:#00c6ff">2.87% – 4.35%</span> per transaction</div>
+  <div style="font-size:15px;color:#86868b;margin-top:6px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.5">Enter your details below. We'll show you exactly what you could save.</div>
+</div>
+
+<!-- YOUR BUSINESS -->
+<div class="panel">
+  <div class="panel-label">YOUR BUSINESS</div>
+  <div class="g2">
+    <div><label class="lbl">Business Name</label><input class="inp" type="text" id="c-name" placeholder="Your Company"></div>
+    <div><label class="lbl">Industry</label><select class="inp" id="c-vert" onchange="pubCalc()"><option value="Retail" selected>Retail</option><option value="Restaurant / QSR">Restaurant / QSR</option><option value="Auto Shop">Auto Shop</option><option value="Convenience Store">Convenience Store</option><option value="Smoke / CBD / Vape">Smoke / CBD / Vape</option><option value="E-Commerce">E-Commerce</option><option value="Professional Services">Professional Services</option><option value="Healthcare / Dental">Healthcare / Dental</option><option value="Salon / Spa">Salon / Spa</option><option value="Gas Station">Gas Station</option><option value="Other">Other</option></select></div>
+  </div>
+  <div class="g3" style="margin-top:14px">
+    <div><label class="lbl">Zip Code</label><input class="inp" type="text" id="c-zip" maxlength="5" placeholder="80012" oninput="pubCalc()"></div>
+    <div><label class="lbl">Monthly Volume ($)</label><input class="inp" type="number" id="c-vol" value="50000" oninput="pubCalc()"></div>
+    <div><label class="lbl">Transactions / Mo</label><input class="inp" type="number" id="c-tx" value="1000" oninput="pubCalc()"></div>
+  </div>
+  <div class="g3" style="margin-top:14px">
+    <div><label class="lbl">Current Rate (%)</label><input class="inp" type="number" id="c-cur" value="3.20" step="0.01" oninput="pubCalc()"></div>
+    <div><label class="lbl">Email</label><input class="inp" type="email" id="c-email" placeholder="you@business.com"></div>
+    <div><label class="lbl">Phone</label><input class="inp" type="tel" id="c-phone" placeholder="(720) 555-1234"></div>
+  </div>
+</div>
+
+<!-- UPLOAD STATEMENT -->
+<div class="panel">
+  <div class="panel-label">OR UPLOAD A STATEMENT</div>
+  <div id="pub-upload-zone" style="border:2px dashed #d2d2d7;border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa"
+    onclick="pubEl('pub-file-input').click()"
+    ondragover="event.preventDefault();this.style.borderColor='#00c6ff';this.style.background='#f0fbff'"
+    ondragleave="this.style.borderColor='#d2d2d7';this.style.background='#fafafa'"
+    ondrop="event.preventDefault();this.style.borderColor='#d2d2d7';this.style.background='#fafafa';pubHandleFiles(event.dataTransfer.files)">
+    <div style="font-size:28px;margin-bottom:6px">📄</div>
+    <div style="font-size:15px;font-weight:600;color:#1d1d1f">Drop your statement here or tap to browse</div>
+    <div style="font-size:13px;color:#86868b;margin-top:4px">PDF, image, or photo — AI reads it and fills in your details</div>
+    <input type="file" id="pub-file-input" accept="image/*,.pdf" capture="environment" style="display:none" onchange="pubHandleFiles(this.files)">
+  </div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+    <button onclick="pubEl('pub-file-input').click()" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:980px;border:none;background:#f5f5f7;color:#1d1d1f;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:44px">📁 Browse Files</button>
+    <button onclick="pubCamera()" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:980px;border:none;background:#f5f5f7;color:#1d1d1f;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:44px">📷 Camera</button>
+  </div>
+  <div id="pub-extract-status" style="margin-top:12px;text-align:center"></div>
+</div>
+
+<!-- MODEL -->
+<div class="panel">
+  <div class="panel-label">PRICING MODEL</div>
+  <div class="model-tabs" id="pub-mtabs">
+    <div class="mtab active" data-m="cash_disc" onclick="pubPick(this)">💵 Cash Discount</div>
+    <div class="mtab" data-m="dual" onclick="pubPick(this)">💎 Dual Pricing</div>
+    <div class="mtab" data-m="ic_plus" onclick="pubPick(this)">⚡ Interchange+</div>
+    <div class="mtab" data-m="surcharge" onclick="pubPick(this)">📊 Surcharge</div>
+    <div class="mtab" data-m="tiered" onclick="pubPick(this)">📦 Tiered</div>
+  </div>
+  <div id="pub-mdesc" style="font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.6"></div>
+  <div id="pub-minp"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="panel"><div class="panel-label">YOUR SAVINGS</div><div id="pub-res"></div></div>
+
+<!-- PROPOSAL -->
+<div id="pub-prop"></div>
+
+<!-- CTA -->
+<div style="text-align:center;padding:40px 24px;margin-top:40px">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#1d1d1f;letter-spacing:.04em;margin-bottom:6px">READY TO START SAVING?</div>
+  <div style="font-size:15px;color:#86868b;margin-bottom:20px">Free 15-minute consultation. No obligation.</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+    <a href="https://outlook.office.com/book/NexusPayWebsiteBookings@nexuspayservices.com" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:14px 28px;border-radius:980px;background:#00c6ff;color:#fff;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif">📅 Book a Call</a>
+    <a href="tel:7206897272" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:14px 28px;border-radius:980px;background:#f5f5f7;color:#1d1d1f;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif">📞 (720) 689-7272</a>
+    <a href="https://nexuspayservices.com" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:14px 28px;border-radius:980px;background:#f5f5f7;color:#1d1d1f;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif">nexuspayservices.com</a>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid #e5e5ea;font-size:12px;color:#86868b">
+  <a href="https://nexuspayservices.com" style="color:#00c6ff;text-decoration:none">nexuspayservices.com</a> · <a href="tel:7206897272" style="color:#00c6ff;text-decoration:none">(720) 689-7272</a><br>
+  NexusPay, LLC — Veteran-Owned · Aurora, Colorado<br>
+  <span style="font-size:10px;color:#aeaeb2">Savings estimates are projections. Final rates subject to underwriting.</span><br><br>
+  <button onclick="showStaffLogin()" style="font-size:11px;color:#86868b;background:#f5f5f7;border:none;border-radius:980px;padding:8px 16px;cursor:pointer;font-family:'DM Sans',sans-serif">🔒 Staff Login</button>
+</div>
+
+</div>
+</div>
+<!-- END CUSTOMER-FACING VIEW -->
+
+<!-- ═══════════════════════════════════════════════
+     INTERNAL TOOL (hidden until staff login)
+     ═══════════════════════════════════════════════ -->
+<div id="app" style="display:none"></div>
+<script>
+/* ═══════════════════════════════════════════════
+   CUSTOMER-FACING CALC ENGINE + TOGGLE LOGIC
+   ═══════════════════════════════════════════════ */
+var PUB_API='https://nexuspay-api-ochi.onrender.com',PUB_M='cash_disc',_pubFs=16;
+var PUB_MDESC={cash_disc:'Your listed price includes a small program fee (typically 3.99%). Cash customers get a discount. You pay near-zero on credit cards. Legal in all 50 states.',dual:'Two prices at checkout — cash and card. Not a surcharge. No state caps.',ic_plus:'Most transparent. You pay actual interchange + a small markup. No hidden tiers.',surcharge:'Fee on credit card transactions. Colorado max 2%. Debit excluded.',tiered:'Transactions sorted into tiers. Simple but less transparent.'};
+var PUB_VIC={'Auto Shop':1.80,'Convenience Store':1.70,'Smoke / CBD / Vape':2.10,'Restaurant / QSR':1.75,'Retail':1.65,'E-Commerce':1.90,'Professional Services':1.80,'Healthcare / Dental':1.85,'Salon / Spa':1.75,'Gas Station':1.60,'Other':1.80};
+var PUB_ZIP={'800':2.89,'801':2.91,'802':2.87,'803':2.92,'804':2.88,'805':2.94,'900':3.12,'901':3.08,'100':3.15,'101':3.12,'606':2.98,'600':2.95,'770':2.85,'773':2.88,'331':3.02,'333':3.05,'981':2.92,'303':2.94,'021':3.08,'850':2.78,'750':2.82,'432':2.90};
+var PUB_TS={q:.25,m:1.00,n:1.50};
+function pubEl(id){return document.getElementById(id)}
+function pubFmt(n,d){d=d===undefined?2:d;return n.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function pubEsc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function pubToast(m){var e=pubEl('pub-toast');e.textContent=m;e.style.display='block';setTimeout(function(){e.style.display='none'},3000)}
+function zf(d){if(d===0)_pubFs=16;else _pubFs=Math.min(24,Math.max(12,_pubFs+(d*2)));document.documentElement.style.fontSize=_pubFs+'px'}
+function pubMktR(z){if(z&&z.length>=3){var r=PUB_ZIP[z.substring(0,3)];if(r)return r}return 3.61}
+function pubPick(el){document.querySelectorAll('#pub-mtabs .mtab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');PUB_M=el.dataset.m;pubEl('pub-mdesc').textContent=PUB_MDESC[PUB_M]||'';pubRInp();pubCalc()}
+function pubRInp(){var h='';
+  if(PUB_M==='cash_disc'||PUB_M==='dual'){h='<div class="g2"><div><label class="lbl">Program Fee (%)</label><input class="inp" type="number" id="c-pf" value="3.99" step="0.01" oninput="pubCalc()" style="border-color:var(--blue);color:var(--blue);font-weight:700"></div><div><label class="lbl" style="padding-top:22px;font-size:10px;color:var(--t4)">Paid by card-using customers, not you.</label></div></div>'}
+  else if(PUB_M==='ic_plus'){h='<div class="g2"><div><label class="lbl">Markup (%)</label><input class="inp" type="number" id="c-mu" value="0.50" step="0.01" oninput="pubCalc()"></div><div><label class="lbl">Per-Transaction ($)</label><input class="inp" type="number" id="c-ptx" value="0.10" step="0.01" oninput="pubCalc()"></div></div>'}
+  else if(PUB_M==='surcharge'){h='<div class="g2"><div><label class="lbl">Surcharge (%)</label><input class="inp" type="number" id="c-sr" value="2.00" step="0.01" max="2.00" oninput="pubCalc()"></div><div><label class="lbl" style="padding-top:22px;font-size:10px;color:var(--amber)">⚠ Colorado max 2%. Debit excluded.</label></div></div>'}
+  else if(PUB_M==='tiered'){h='<div style="font-size:12px;color:var(--t3);font-family:var(--mono)">Qual +'+PUB_TS.q.toFixed(2)+'% · Mid +'+PUB_TS.m.toFixed(2)+'% · Non-Qual +'+PUB_TS.n.toFixed(2)+'%</div>'}
+  pubEl('pub-minp').innerHTML=h}
+function pubIC(v){return(PUB_VIC[v]||1.80)/100}
+function pubCR(mdl,vt,vol,tx){var i=pubIC(vt)*100,ccV=vol*.85;
+  if(mdl==='cash_disc'||mdl==='dual'){var db=(vol-ccV)*.0065+15;return{eff:vol>0?(db/vol)*100:0,mo:db}}
+  if(mdl==='ic_plus'){var mu=+((pubEl('c-mu')||{}).value||.50),ptx=+((pubEl('c-ptx')||{}).value||.10);return{eff:i+mu,mo:ccV*((i+mu)/100)+tx*ptx+15}}
+  if(mdl==='surcharge'){
+    // Surcharge reality: recover max 2% on CREDIT ONLY. Cannot surcharge debit.
+    // Merchant still pays: (CC interchange - surcharge recovery) + all per-tx fees + debit cost + monthly
+    var sr=Math.min(+((pubEl('c-sr')||{}).value||2),2);
+    var ccIC=ccV*(i/100); // interchange on CC volume
+    var surchRecovery=ccV*(Math.min(sr,i*100)/100); // can't recover more than actual cost OR 2%
+    var netCC=Math.max(0,ccIC-surchRecovery); // remaining CC cost after surcharge
+    var perTxFees=tx*0.10+tx*0.02; // auth + AVS fees merchant still pays
+    var monthlyFees=15; // platform/monthly fees
+    var debitCost=(vol-ccV)*0.0065; // FULL debit cost — cannot surcharge debit
+    var totalMo=netCC+perTxFees+monthlyFees+debitCost;
+    return{eff:vol>0?(totalMo/vol)*100:0,mo:totalMo}
+  }
+  if(mdl==='tiered'){var sp=PUB_TS.q*.6+PUB_TS.m*.25+PUB_TS.n*.15;return{eff:i+sp,mo:ccV*((i+sp)/100)+15}}
+  return{eff:i+.5,mo:ccV*((i+.5)/100)+tx*.1+15}}
+function pubCalc(){
+  var vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,tx=+pubEl('c-tx').value||0,curR=+pubEl('c-cur').value||3.20,zip=(pubEl('c-zip')||{}).value||'';
+  if(vol<=0){pubEl('pub-res').innerHTML='<div style="text-align:center;color:var(--t4);padding:24px;font-size:13px">Enter your monthly volume to see results.</div>';pubEl('pub-prop').innerHTML='';return}
+  var curMo=vol*(curR/100),mkt=pubMktR(zip),r=pubCR(PUB_M,vt,vol,tx),sav=curMo-r.mo;
+  var mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
+  var h='';
+  if(sav>0){h+='<div class="best-banner"><div><div class="bb-tag">★ NEXUSPAY RECOMMENDED</div><div class="bb-title">'+pubEsc(mdl)+'</div></div><div style="text-align:right"><div class="bb-val">$'+pubFmt(sav*12,0)+'<span> /year savings</span></div></div></div>'}
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px"><div class="rcard" style="border-color:#fecaca;background:#fef8f8"><div style="font-size:9px;font-weight:700;letter-spacing:.1em;font-family:var(--mono);color:var(--red);margin-bottom:6px">YOUR CURRENT PROCESSOR</div><div style="font-size:14px;font-weight:600;color:var(--t2)">Current Provider</div><div style="font-family:var(--display);font-size:32px;color:var(--red)">'+curR.toFixed(2)+'%<span style="font-size:12px;color:var(--t3);font-family:var(--sans)"> effective</span></div><div style="font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:6px">$'+pubFmt(curMo)+'/mo · $'+pubFmt(curMo*12,0)+'/yr</div></div>';
+  h+='<div class="rcard best"><div style="font-size:9px;font-weight:700;letter-spacing:.1em;font-family:var(--mono);color:var(--teal);margin-bottom:6px">★ NEXUSPAY</div><div style="font-size:14px;font-weight:600;color:var(--navy)">'+pubEsc(mdl)+'</div><div style="font-family:var(--display);font-size:32px;color:var(--green)">'+r.eff.toFixed(2)+'%<span style="font-size:12px;color:var(--t3);font-family:var(--sans)"> effective</span></div><div style="font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:6px">$'+pubFmt(r.mo)+'/mo · $'+pubFmt(r.mo*12,0)+'/yr</div>'+(sav>0?'<div style="display:inline-block;margin-top:8px;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--green);background:rgba(22,163,74,.06);padding:3px 10px;border-radius:4px">↓ Save $'+pubFmt(sav)+'/mo</div>':'')+'</div></div>';
+  h+='<div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--card2);border-radius:8px;font-size:11px;margin-bottom:16px;flex-wrap:wrap;gap:6px;border:1px solid var(--b0)">';
+  if(zip&&zip.length>=3)h+='<span style="color:var(--t3)">'+pubEsc(zip)+' Avg: <b style="color:var(--t1)">'+mkt.toFixed(2)+'%</b></span>';
+  h+='<span style="color:var(--t3)">US Avg: <b style="color:var(--t1)">2.87%–4.35%</b></span><span style="color:var(--t3)">You: <b style="color:'+(curR>mkt?'var(--red)':'var(--green)')+'">'+curR.toFixed(2)+'%</b></span><span style="color:var(--t3)">NexusPay: <b style="color:var(--teal)">'+r.eff.toFixed(2)+'%</b></span></div>';
+  h+='<table class="dtable" style="width:100%;border-collapse:collapse;font-size:12px"><tr style="border-bottom:1px solid var(--b0)"><th style="text-align:left;padding:8px 10px;font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Model</th><th style="text-align:right;padding:8px 10px;font-size:10px;font-weight:600;color:var(--t3)">Rate</th><th style="text-align:right;padding:8px 10px;font-size:10px;font-weight:600;color:var(--t3)">Monthly</th><th style="text-align:right;padding:8px 10px;font-size:10px;font-weight:600;color:var(--t3)">Savings/Yr</th></tr>';
+  [{id:'cash_disc',l:'Cash Discount'},{id:'dual',l:'Dual Pricing'},{id:'ic_plus',l:'Interchange+'},{id:'surcharge',l:'Surcharge'},{id:'tiered',l:'Tiered'}].forEach(function(m){
+    var q=pubCR(m.id,vt,vol,tx),s2=curMo-q.mo,cur=m.id===PUB_M;
+    h+='<tr style="border-bottom:1px solid var(--b0);'+(cur?'background:#e8f0fe':'')+'"><td style="padding:8px 10px;'+(cur?'color:var(--blue);font-weight:600':'')+'">'+m.l+(cur?' ←':'')+'</td><td style="padding:8px 10px;text-align:right;font-family:var(--mono)">'+q.eff.toFixed(2)+'%</td><td style="padding:8px 10px;text-align:right;font-family:var(--mono)">$'+pubFmt(q.mo)+'</td><td style="padding:8px 10px;text-align:right;font-family:var(--mono);color:'+(s2>0?'var(--green)':'var(--t4)')+'">'+(s2>0?'$'+pubFmt(s2*12,0):'—')+'</td></tr>'});
+  h+='</table>';
+  pubEl('pub-res').innerHTML=h;
+  pubRProp(vt,vol,tx,curR,curMo,r,sav,mdl,mkt,zip)}
+function pubRProp(vt,vol,tx,curR,curMo,r,sav,mdl,mkt,zip){
+  var nm=pubEl('c-name').value||'Your Business';
+  var h='<div class="panel" id="pub-proposal" style="border-color:rgba(12,155,138,.2)"><div style="font-family:var(--display);font-size:20px;color:var(--navy);letter-spacing:.06em">PROCESSING PROPOSAL</div><div style="font-size:11px;color:var(--t3);margin-bottom:14px">For '+pubEsc(nm)+' · '+new Date().toLocaleDateString()+' · NexusPay — Veteran-Owned</div>';
+  h+='<table class="dtable" style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px">';
+  [['Industry',vt],['Zip Code',zip||'—'],['Monthly Volume','$'+pubFmt(vol,0)],['Transactions',pubFmt(tx,0)],['Avg Ticket','$'+pubFmt(vol/Math.max(tx,1))],['Market Avg ('+(zip&&zip.length>=3?zip:'US')+')',mkt.toFixed(2)+'%'],['Current Rate',curR.toFixed(2)+'%'],['Current Cost','$'+pubFmt(curMo)+'/mo'],['Recommended',mdl],['NexusPay Rate',r.eff.toFixed(2)+'%'],['NexusPay Cost','$'+pubFmt(r.mo)+'/mo']].forEach(function(p){
+    var isR=p[0]==='Current Rate'||p[0]==='Current Cost',isG=p[0]==='Recommended'||p[0].startsWith('NexusPay');
+    h+='<tr style="border-bottom:1px solid var(--b0)"><td style="padding:6px 10px;color:var(--t3)">'+p[0]+'</td><td style="padding:6px 10px;text-align:right;font-family:var(--mono);'+(isR?'color:var(--red)':isG?'color:var(--teal);font-weight:700':'')+'">'+p[1]+'</td></tr>'});
+  h+='</table>';
+  if(sav>0)h+='<div style="text-align:center;padding:16px;background:linear-gradient(135deg,#e6f7f2,#e8f0fe);border-radius:10px;margin:16px 0;border:1px solid #a7e0d0"><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.1em">PROJECTED ANNUAL SAVINGS</div><div style="font-family:var(--display);font-size:40px;color:var(--green);letter-spacing:.02em">$'+pubFmt(sav*12,0)+'</div><div style="font-size:13px;color:var(--t2);margin-top:4px">$'+pubFmt(sav)+' back in your pocket every month</div></div>';
+  h+='<div id="pub-ai-out"></div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px"><button class="act-btn act-gen" onclick="pubAI()">🧠 AI Proposal (4 AIs)</button><button class="act-btn act-email" onclick="pubEmail()">✉️ Email</button><button class="act-btn act-view" onclick="window.print()">🖨 Print</button><button class="act-btn act-email" onclick="pubPDF()">⬇ PDF</button><button class="act-btn act-view" onclick="pubCopy()">📋 Copy</button></div>';
+  h+='<div style="font-size:10px;color:var(--t4);margin-top:14px;padding:10px;background:var(--card2);border-radius:6px;line-height:1.5">Based on your stated details. Final rates subject to underwriting and processor approval. NexusPay is a registered sub-ISO of Beacon Payments.</div></div>';
+  pubEl('pub-prop').innerHTML=h;pubLead(nm,vt,vol,curR,r,zip)}
+function pubAI(){var el=pubEl('pub-ai-out');if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:16px"><div style="width:20px;height:20px;border:2px solid var(--b0);border-top-color:var(--blue);border-radius:50%;animation:pulse-extract .6s linear infinite;margin:0 auto"></div><div style="font-size:11px;color:var(--t3);margin-top:6px;font-family:var(--mono)">Running Claude + GPT-4o + Gemini + Grok…</div></div>';
+  var nm=pubEl('c-name').value||'Your Business',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,tx=+pubEl('c-tx').value||0,curR=+pubEl('c-cur').value||3.20,zip=pubEl('c-zip').value||'';
+  var curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,tx),sav=curMo-r.mo,mkt=pubMktR(zip);
+  var mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
+  fetch(PUB_API+'/api/pricing-tool/public-proposal',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({business_name:nm,industry:vt,monthly_volume:vol,transactions:tx,credit_card_pct:85,current_rate:curR,current_monthly_cost:curMo,recommended_model:mdl,nexuspay_rate:+r.eff.toFixed(2),nexuspay_monthly_cost:+r.mo.toFixed(2),annual_savings:+(sav*12).toFixed(2),market_avg_rate:mkt})
+  }).then(function(r){return r.json()}).then(function(d){
+    if(d.proposal_text){var p=d._providers||[];
+      el.innerHTML='<div class="proposal-box"><div style="font-size:9px;color:var(--teal);font-weight:700;font-family:var(--mono);letter-spacing:.08em;margin-bottom:8px">AI CONSENSUS · '+p.length+' PROVIDERS: '+pubEsc(p.join(' + '))+'</div>'+pubEsc(d.proposal_text)+'</div>'}
+    else el.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px">'+pubEsc(d.detail||'AI unavailable')+'</div>'
+  }).catch(function(){el.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px">Could not reach AI — try again.</div>'})}
+function pubEmail(){var nm=pubEl('c-name').value||'',em=pubEl('c-email').value||'',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,curR=+pubEl('c-cur').value||3.20,curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,+pubEl('c-tx').value||0),sav=curMo-r.mo,mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
+  window.open('mailto:'+em+'?subject='+encodeURIComponent('NexusPay Proposal for '+(nm||'Your Business'))+'&body='+encodeURIComponent((nm||'Business Owner')+',\n\nThank you for your interest in NexusPay.\n\nIndustry: '+vt+'\nVolume: $'+pubFmt(vol,0)+'/mo\nCurrent: '+curR.toFixed(2)+'% ($'+pubFmt(curMo)+'/mo)\n\nRecommended: '+mdl+'\nNexusPay: '+r.eff.toFixed(2)+'% ($'+pubFmt(r.mo)+'/mo)\n'+(sav>0?'Annual Savings: $'+pubFmt(sav*12,0)+'\n':'')+'\nBook a call: https://outlook.office.com/book/NexusPayWebsiteBookings@nexuspayservices.com\n\nNexusPay — Veteran-Owned\n(720) 689-7272 | nexuspayservices.com'))}
+function pubPDF(){var j=new(window.jspdf.jsPDF),nm=pubEl('c-name').value||'Your Business',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,tx=+pubEl('c-tx').value||0,curR=+pubEl('c-cur').value||3.20,zip=pubEl('c-zip').value||'',curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,tx),sav=curMo-r.mo,mkt=pubMktR(zip),mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
+  j.setFontSize(22);j.setTextColor(11,29,58);j.text('NEXUSPAY',20,25);j.setFontSize(10);j.setTextColor(107,130,158);j.text('Veteran-Owned Merchant Services | '+new Date().toLocaleDateString(),20,33);j.setDrawColor(26,109,212);j.setLineWidth(.5);j.line(20,37,190,37);
+  var y=48;j.setFontSize(13);j.setTextColor(11,29,58);j.text('Proposal for '+nm,20,y);y+=12;j.setFontSize(10);j.setTextColor(80,80,110);
+  [['Industry',vt],['Zip',zip||'—'],['Volume','$'+pubFmt(vol,0)+'/mo'],['Transactions',pubFmt(tx,0)],['Market Avg',mkt.toFixed(2)+'%'],['Current Rate',curR.toFixed(2)+'%'],['Current Cost','$'+pubFmt(curMo)+'/mo']].forEach(function(p){j.text(p[0]+':',20,y);j.setTextColor(11,29,58);j.text(p[1],75,y);j.setTextColor(80,80,110);y+=7});
+  y+=6;j.setFontSize(14);j.setTextColor(12,155,138);j.text('Recommended: '+mdl,20,y);y+=9;j.setFontSize(10);j.setTextColor(11,29,58);j.text('NexusPay Rate: '+r.eff.toFixed(2)+'%',20,y);y+=7;j.text('NexusPay Cost: $'+pubFmt(r.mo)+'/mo',20,y);y+=7;
+  if(sav>0){j.setTextColor(22,163,74);j.text('Annual Savings: $'+pubFmt(sav*12,0),20,y);y+=12}
+  j.setFontSize(8);j.setTextColor(148,167,189);y+=8;j.text('Subject to underwriting. NexusPay, LLC — Veteran-Owned — (720) 689-7272 — nexuspayservices.com',20,y);
+  j.save('NexusPay-Proposal-'+nm.replace(/[^a-zA-Z0-9]/g,'-')+'.pdf');pubToast('PDF saved')}
+function pubCopy(){var nm=pubEl('c-name').value||'Your Business',vt=pubEl('c-vert').value,vol=+pubEl('c-vol').value||0,curR=+pubEl('c-cur').value||3.20,curMo=vol*(curR/100),r=pubCR(PUB_M,vt,vol,+pubEl('c-tx').value||0),sav=curMo-r.mo,mdl={cash_disc:'Cash Discount',dual:'Dual Pricing',ic_plus:'Interchange+',surcharge:'Surcharge',tiered:'Tiered'}[PUB_M];
+  navigator.clipboard.writeText('NEXUSPAY PROPOSAL\n'+nm+' | '+new Date().toLocaleDateString()+'\n\n'+vt+' · $'+pubFmt(vol,0)+'/mo\nCurrent: '+curR.toFixed(2)+'% ($'+pubFmt(curMo)+'/mo)\n\n'+mdl+': '+r.eff.toFixed(2)+'% ($'+pubFmt(r.mo)+'/mo)\n'+(sav>0?'Savings: $'+pubFmt(sav*12,0)+'/yr\n':'')+'\nNexusPay — Veteran-Owned\n(720) 689-7272 | nexuspayservices.com').then(function(){pubToast('Copied')})}
+function pubLead(nm,vt,vol,curR,r,zip){var em=pubEl('c-email').value||'',ph=pubEl('c-phone').value||'';if(!em&&!nm)return;
+  try{fetch(PUB_API+'/api/leads/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({full_name:nm||'PriceTool',email:em||'noemail@pricetool.nexuspay',business_name:nm,phone:ph,message:'[PriceTool] '+PUB_M+' | Zip:'+zip+' | Vol:$'+pubFmt(vol,0)+' | Cur:'+curR.toFixed(2)+'% | NP:'+r.eff.toFixed(2)+'%'})}).catch(function(){});}catch(e){}}
+
+/* ── STATEMENT UPLOAD + 4-AI EXTRACTION ── */
+function pubHandleFiles(files){
+  if(!files||!files.length)return;
+  var file=files[0];
+  if(file.size>25*1024*1024){pubToast('File too large — 25MB max');return}
+  var status=pubEl('pub-extract-status');
+  status.innerHTML='<div style="padding:12px;background:#f0f7ff;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px"><div style="width:16px;height:16px;border:2px solid #d2d2d7;border-top-color:#00c6ff;border-radius:50%;animation:pulse-extract .6s linear infinite"></div><span style="font-size:13px;color:#1d1d1f;font-weight:500">Reading your statement with 4 AIs…</span></div>';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var b64=e.target.result.split(',')[1];
+    var mt=file.type||'image/jpeg';
+    fetch(PUB_API+'/api/pricing-tool/public-extract',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({file_base64:b64,media_type:mt,file_name:file.name,business_name:pubEl('c-name').value||'',email:pubEl('c-email').value||'',phone:pubEl('c-phone').value||''})
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d.monthly_volume||d.effective_rate||d.business_name){
+        // Auto-fill fields
+        if(d.business_name){pubEl('c-name').value=d.business_name}
+        if(d.monthly_volume){pubEl('c-vol').value=Math.round(d.monthly_volume)}
+        if(d.transaction_count){pubEl('c-tx').value=Math.round(d.transaction_count)}
+        if(d.effective_rate){pubEl('c-cur').value=d.effective_rate.toFixed(2)}
+        if(d.industry){var sel=pubEl('c-vert');for(var i=0;i<sel.options.length;i++){if(sel.options[i].value.toLowerCase().indexOf(d.industry.toLowerCase())>=0){sel.selectedIndex=i;break}}}
+        var provs=d._providers||[];
+        status.innerHTML='<div style="padding:12px;background:#e8faf5;border-radius:12px;font-size:13px;color:#0c9b8a;font-weight:600">✓ Statement analyzed by '+provs.length+' AI'+(provs.length>1?'s':'')+' — fields auto-filled</div>';
+        pubCalc();
+      } else {
+        status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Could not read statement — try a clearer photo or enter details manually</div>';
+      }
+    }).catch(function(){
+      status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Upload failed — check connection and try again</div>';
+    });
+  };
+  reader.readAsDataURL(file);
+}
+function pubCamera(){
+  var inp=pubEl('pub-file-input');
+  inp.setAttribute('capture','environment');
+  inp.click();
+  setTimeout(function(){inp.removeAttribute('capture')},1000);
+}
+
+/* ── VIEW TOGGLE ── */
+function showStaffLogin(){document.getElementById('public-view').style.display='none';document.getElementById('app').style.display='block';document.documentElement.style.background='var(--bg)'}
+function showPublicView(){document.getElementById('app').style.display='none';document.getElementById('public-view').style.display='block';document.documentElement.style.background='#ffffff';document.documentElement.style.fontSize=_pubFs+'px'}
+
+/* Init customer view */
+document.documentElement.style.background='#ffffff';
+pubRInp();pubEl('pub-mdesc').textContent=PUB_MDESC[PUB_M]||'';pubCalc();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const{useState,useMemo,useCallback,useEffect}=React;
+const API="https://nexuspay-api-ochi.onrender.com";
+const BEACON_BUY={sponsorship_pct:0.0002,auth:0.04,avs:0.04,batch:0.04,transarmor:5,platform:10,amex_optblue_pct:0.001};
+const MAV_BUY={low:{tx:0.0275,bin:0.0002,avs:0.01,batch:0.01,monthly:10,pci:5},moderate:{tx:0.04,bin:0.0002,avs:0.03,batch:0.025,monthly:10,pci:5},high:{tx:0.06,bin:0.0035,avs:0.05,batch:0.04,monthly:20,pci:5}};
+const NORTH_BUY={epx:{bin_bps:0,amex_bps:10,auth_ip:0.025,auth_ip_major:0.015,debit_tx:0.10,avs:0,batch:0.05,monthly_stmt:5,debit_gateway:5,annual:5},global:{bin_bps:0,amex_bps:10,auth_ip:0.025,auth_ip_major:0.015,debit_tx:0.10,avs:0,batch:0.05,monthly_stmt:5,debit_gateway:5,annual:5},firstdata:{bin_bps:2,amex_bps:10,auth_ip:0.020,auth_ip_major:null,debit_tx:0.03,avs:0,batch:0.02,monthly_stmt:5,debit_gateway:5,annual:5}};
+const KURV_BUY={sp:0.0002,auth_std:0.04,auth_high:0.10,batch:0.05,monthly:5};
+const SPLITS={bt:0.75,bf:0.50,ml:0.90,mm:0.80,mh:0.60,kurv_l:0.80,kurv_m:0.80,kurv_h:0.50,north50_epx:0.50,north50_global:0.50,north50_fd:0.50,north70_epx:0.70,north70_global:0.70,north70_fd:0.70};
+const FLOORS={bt:{markup:0.50,auth:0.10},bf:{markup:0.60,auth:0.10,maxTotal:4},ml:{markup:0.47,auth:0.10},mm:{markup:0.60,auth:0.11},mh:{markup:0.72,auth:0.13},kurv_l:{markup:0.47,auth:0.10},kurv_m:{markup:0.60,auth:0.11},kurv_h:{markup:0.72,auth:0.13},north50_epx:{markup:0.40,auth:0.08},north50_global:{markup:0.40,auth:0.08},north50_fd:{markup:0.35,auth:0.06},north70_epx:{markup:0.35,auth:0.06},north70_global:{markup:0.35,auth:0.06},north70_fd:{markup:0.30,auth:0.05}};
+const AVG_IC={bt:1.85,bf:1.85,ml:1.65,mm:2.10,mh:2.60,kurv_l:1.65,kurv_m:2.10,kurv_h:2.60,north50_epx:1.85,north50_global:1.85,north50_fd:1.85,north70_epx:1.85,north70_global:1.85,north70_fd:1.85};
+const MKT={bt:2.75,bf:2.85,ml:2.50,mm:3.15,mh:3.90,kurv_l:2.50,kurv_m:3.15,kurv_h:3.90,north50_epx:2.90,north50_global:2.90,north50_fd:2.90,north70_epx:2.90,north70_global:2.90,north70_fd:2.90};
+const PROGRAMS=[
+{id:"bt",label:"Beacon Traditional",short:"BT",split:"75%",color:"#1a6dd4",group:"Beacon"},
+{id:"bf",label:"Beacon Flex Sell",short:"BF",split:"50%",color:"#0c9b8a",group:"Beacon"},
+{id:"ml",label:"Maverick Low",short:"ML",split:"90%",color:"#5b5fc7",group:"Maverick"},
+{id:"mm",label:"Maverick Moderate",short:"MM",split:"80%",color:"#d97706",group:"Maverick"},
+{id:"mh",label:"Maverick High",short:"MH",split:"60%",color:"#dc2626",group:"Maverick"},
+{id:"kurv_l",label:"Kurv / EMS Low",short:"KV-L",split:"80%",color:"#059669",group:"Kurv"},
+{id:"kurv_m",label:"Kurv / EMS Moderate",short:"KV-M",split:"80%",color:"#047857",group:"Kurv"},
+{id:"kurv_h",label:"Kurv / EMS High",short:"KV-H",split:"50%",color:"#065f46",group:"Kurv"},
+{id:"north50_epx",label:"North 50% \u00b7 EPX",short:"N50-E",split:"50%",color:"#7c3aed",group:"North"},
+{id:"north50_global",label:"North 50% \u00b7 Global",short:"N50-G",split:"50%",color:"#6d28d9",group:"North"},
+{id:"north50_fd",label:"North 50% \u00b7 FirstData",short:"N50-FD",split:"50%",color:"#5b21b6",group:"North"},
+{id:"north70_epx",label:"North 70% \u00b7 EPX",short:"N70-E",split:"70%",color:"#9333ea",group:"North"},
+{id:"north70_global",label:"North 70% \u00b7 Global",short:"N70-G",split:"70%",color:"#a855f7",group:"North"},
+{id:"north70_fd",label:"North 70% \u00b7 FirstData",short:"N70-FD",split:"70%",color:"#c084fc",group:"North"},
+];
+const MODELS=[{id:"cash_disc",label:"Cash Discount",icon:"\ud83d\udcb5"},{id:"dual",label:"Dual Pricing",icon:"\ud83d\udc8e"},{id:"ic_plus",label:"Interchange+",icon:"\u26a1"},{id:"surcharge",label:"Surcharge",icon:"\ud83d\udcc8"},{id:"tiered",label:"Tiered",icon:"\ud83d\udce6"}];
+const VERTS=["Restaurant / QSR","Retail","Auto Shop","Convenience Store","Smoke / CBD / Vape","E-Commerce","Professional Services","Healthcare / Dental","Salon / Spa","Gas Station","Other"];
+
+// Employee internal splits (hidden from employee view)
+const EMP_RESIDUAL_CUT=0.20; // employee gets 20% of NexusPay residual
+const EMP_BONUS_CUT=0.40;    // employee gets 40% of NexusPay one-time bonuses
+
+// One-time & recurring bonuses per merchant (from Schedule A)
+const BONUSES={
+  // North bonuses — from actual Schedule A
+  north50_epx:{upfront:600,trueUp:"14x",cap:10000,pci_mo:0.80,label:"EPX-PA"},
+  north50_global:{upfront:300,trueUp:"12x",cap:5000,pci_mo:3.00,label:"EPX Non-PA / Global"},
+  north50_fd:{upfront:200,trueUp:"4x",cap:2000,pci_mo:2.00,label:"First Data"},
+  north70_epx:{upfront:600,trueUp:"14x",cap:10000,pci_mo:0.80,label:"EPX-PA"},
+  north70_global:{upfront:300,trueUp:"12x",cap:5000,pci_mo:3.00,label:"EPX Non-PA / Global"},
+  north70_fd:{upfront:200,trueUp:"4x",cap:2000,pci_mo:2.00,label:"First Data"},
+  // Beacon / Maverick — placeholder until Schedule A confirmed
+  bt:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Beacon Trad"},
+  bf:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Beacon Flex"},
+  ml:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Maverick Low"},
+  mm:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Maverick Mod"},
+  mh:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Maverick High"},
+  kurv_l:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Kurv Low"},
+  kurv_m:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Kurv Mod"},
+  kurv_h:{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:"Kurv High"},
+};
+// North Fast Start Agent Bonus ($20K cap)
+const FAST_START={tier1:{mids:"75+",perMid:150},tier2:{mids:"50-74",perMid:100},tier3:{mids:"20-49",perMid:75}};
+// Payanywhere SaaS (recurring, per terminal)
+const PAYANYWHERE={smart:19.95,e600:29.95,pos:29.95,posPlus:49.95,loyalty:15};
+
+function getBuy(pid,vol,txns,isMajor){
+  if(pid==="bt"||pid==="bf"){const s=vol*BEACON_BUY.sponsorship_pct,a=txns*BEACON_BUY.auth,v=txns*BEACON_BUY.avs,b=30*BEACON_BUY.batch,t=BEACON_BUY.transarmor,p=BEACON_BUY.platform;return{total:s+a+v+b+t+p,rows:[{l:"Sponsorship",v:s,n:"2bps"},{l:"Auth",v:a,n:"$0.04"},{l:"AVS",v:v},{l:"Batch",v:b},{l:"TransArmor",v:t},{l:"Platform",v:p}]};}
+  if(pid.startsWith("north")){const pr=pid.includes("epx")?"epx":pid.includes("global")?"global":"firstdata",n=NORTH_BUY[pr],ar=(isMajor&&n.auth_ip_major!==null)?n.auth_ip_major:n.auth_ip,bn=vol*(n.bin_bps/10000),au=txns*ar,av=txns*n.avs,ba=30*n.batch,st=n.monthly_stmt,dg=n.debit_gateway;return{total:bn+au+av+ba+st+dg,rows:[{l:"BIN",v:bn,n:n.bin_bps+"bps"},{l:"Auth",v:au,n:"$"+ar.toFixed(3)},{l:"AVS",v:av},{l:"Batch",v:ba},{l:"Stmt",v:st},{l:"Debit Gw",v:dg}]};}
+  if(pid.startsWith("kurv")){const isHigh=pid==="kurv_h",au=txns*(isHigh?KURV_BUY.auth_high:KURV_BUY.auth_std),bn=vol*KURV_BUY.sp,ba=30*KURV_BUY.batch,mo=KURV_BUY.monthly;return{total:bn+au+ba+mo,rows:[{l:"BIN",v:bn,n:"2bps"},{l:"Auth",v:au,n:isHigh?"$0.10":"$0.04"},{l:"Batch",v:ba,n:"$0.05"},{l:"Monthly",v:mo}]};}
+  const rk=pid==="ml"?"low":pid==="mm"?"moderate":"high",m=MAV_BUY[rk],tf=txns*m.tx,bn=vol*m.bin,av=txns*m.avs,ba=30*m.batch,mo=m.monthly,pc=m.pci;return{total:tf+bn+av+ba+mo+pc,rows:[{l:"Tx Fee",v:tf},{l:"BIN",v:bn},{l:"AVS",v:av},{l:"Batch",v:ba},{l:"Monthly",v:mo},{l:"PCI",v:pc}]};
+}
+
+function calc(pid,mid,vol,txns,ccPct,sellMu,sellAuth,progFee,isMajor){
+  const ic=AVG_IC[pid],mkt=MKT[pid],split=SPLITS[pid],floor=FLOORS[pid];
+  const ccV=vol*ccPct/100,dbV=vol-ccV,dbIC=0.65,fxMo=15;
+  const mu=Math.max(sellMu,floor.markup),au=sellAuth;
+  const buy=getBuy(pid,vol,txns,isMajor);
+  let mer,res,expl,rows;
+
+  if(mid==="cash_disc"||mid==="dual"){
+    // CASH DISCOUNT / DUAL: programFee charged to cardholder. Merchant ~$0 on CC.
+    const pf=progFee/100,ccRev=ccV*pf,ccIC=ccV*(ic/100);
+    const gross=ccRev-ccIC-buy.total;
+    res=gross*split;
+    mer=vol>0?((dbV*(dbIC/100)+fxMo)/vol)*100:0;
+    expl=mid==="cash_disc"?"Program fee "+progFee+"% built into listed price. Cardholder absorbs CC cost. Merchant pays only debit + fixed.":"Two prices at POS: cash price and card price (+"+progFee+"%). Same economics as cash discount.";
+    rows=[{l:"Program Fee Revenue",v:ccRev,n:progFee+"% x $"+fmt(ccV)},{l:"Interchange Cost",v:-ccIC,n:ic+"% avg IC"},{l:"Processor Buy",v:-buy.total},{l:"Gross Margin",v:gross,bold:true},{l:"YOUR RESIDUAL ("+pct(split)+")",v:res,hl:true}];
+  } else if(mid==="ic_plus"){
+    const sRev=ccV*(mu/100)+txns*au,gross=sRev-buy.total;
+    res=gross*split;
+    mer=vol>0?((ccV*(ic/100)+ccV*(mu/100)+txns*au+fxMo)/vol)*100:0;
+    expl="Interchange pass-through + "+mu.toFixed(2)+"% markup + $"+au.toFixed(2)+" auth. Most transparent.";
+    rows=[{l:"Markup Revenue",v:ccV*(mu/100),n:mu.toFixed(2)+"%"},{l:"Auth Revenue",v:txns*au},{l:"Processor Buy",v:-buy.total},{l:"Gross Margin",v:gross,bold:true},{l:"YOUR RESIDUAL ("+pct(split)+")",v:res,hl:true}];
+  } else if(mid==="surcharge"){
+    const sr=Math.min(2,mu),sc=ccV*(sr/100),mIC=ccV*(ic/100),mDb=dbV*(dbIC/100);
+    mer=vol>0?Math.max(0,((mIC+mDb+buy.total+fxMo-sc)/vol)*100):0;
+    res=(ccV*(mu/100)+txns*au-buy.total)*split*0.85;
+    expl="CO surcharge cap: "+sr.toFixed(2)+"% on credit only. Debit excluded. ~15% residual reduction.";
+    rows=[{l:"Surcharge Collected",v:sc,n:sr.toFixed(2)+"%"},{l:"Merchant IC",v:-mIC},{l:"Debit (no surcharge)",v:-mDb},{l:"Processor Buy",v:-buy.total},{l:"YOUR RESIDUAL ("+pct(split)+" x 85%)",v:res,hl:true}];
+  } else {
+    // TIERED — FIXED: revenue = markup ABOVE IC only, on CC vol only
+    const q=ic+0.15,mq=ic+0.85,nq=ic+1.60;
+    const blend=q*0.55+mq*0.28+nq*0.17;
+    const muAboveIC=0.15*0.55+0.85*0.28+1.60*0.17; // weighted markup above IC
+    mer=vol>0?((ccV*(blend/100)+txns*au+fxMo)/vol)*100:0;
+    const sRev=ccV*(muAboveIC/100)+txns*au;
+    const gross=sRev-buy.total;
+    res=gross*split;
+    expl="Q: "+q.toFixed(2)+"% / MQ: "+mq.toFixed(2)+"% / NQ: "+nq.toFixed(2)+"%. Opaque. Merchant pays highest rate.";
+    rows=[{l:"Blended Rate (merchant pays)",v:ccV*(blend/100),n:blend.toFixed(2)+"% incl IC"},{l:"NexusPay Markup Revenue",v:ccV*(muAboveIC/100),n:muAboveIC.toFixed(4)+"% above IC"},{l:"Auth Revenue",v:txns*au},{l:"Processor Buy",v:-buy.total},{l:"Gross Margin",v:gross,bold:true},{l:"YOUR RESIDUAL ("+pct(split)+")",v:res,hl:true}];
+  }
+  const bonus=BONUSES[pid]||{upfront:0,trueUp:"N/A",cap:0,pci_mo:0,label:""};
+  return{merchantEffRate:mer,residual:res,per100k:vol>0?(res/vol)*100000:0,beatsMarket:mer<mkt,marketRate:mkt,explanation:expl,rows:rows,belowFloor:sellMu<floor.markup,buyCostRows:buy.rows,bonus:bonus};
+}
+function fmt(n){return n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function pct(n){return(n*100).toFixed(0)+"%"}
+
+function App(){
+  const[authed,setAuthed]=useState(false),[token,setToken]=useState(""),[role,setRole]=useState("");
+  const[email,setEmail]=useState(""),[pass,setPass]=useState(""),[loginErr,setLoginErr]=useState(""),[logging,setLogging]=useState(false);
+  const[mName,setMName]=useState(""),[vert,setVert]=useState("Restaurant / QSR");
+  const[vol,setVol]=useState(50000),[txns,setTxns]=useState(1000),[ccPct,setCcPct]=useState(70);
+  const avgTkt=txns>0?vol/txns:0;
+  const onAvgTkt=v=>{if(+v>0)setTxns(Math.round(vol/(+v)))};
+  const[sellMu,setSellMu]=useState(0.50),[sellAu,setSellAu]=useState(0.10),[pf,setPf]=useState(3.99);
+  const[isMajor,setIsMajor]=useState(false),[selModel,setSelModel]=useState("cash_disc"),[expanded,setExpanded]=useState(null);
+  const[gf,setGf]=useState("all");
+  const[qStatus,setQStatus]=useState(null);// {type:'ok'|'err'|'loading',msg:string}
+  const[proposal,setProposal]=useState("");
+  const[extracting,setExtracting]=useState(false),[extractMsg,setExtractMsg]=useState("");
+  const[uploadFiles,setUploadFiles]=useState([]);// {id,file,preview,name,size,type,status:'pending'|'extracting'|'done'|'error',result:null}
+  const[dragOver,setDragOver]=useState(false);
+  const[cameraOpen,setCameraOpen]=useState(false);
+  const fileRef=React.useRef(null);
+  const videoRef=React.useRef(null);
+  const canvasRef=React.useRef(null);
+  const streamRef=React.useRef(null);
+  const maxMu=selModel==="surcharge"?2:4;
+  useEffect(()=>{if(sellMu>maxMu)setSellMu(maxMu)},[selModel]);
+  const amu=Math.min(sellMu,maxMu);
+
+  /* ── Multi-file helpers ── */
+  const toBase64=(file)=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=()=>rej(new Error("Read failed"));r.readAsDataURL(file)});
+  const addUploadFiles=(incoming)=>{
+    const nf=[];
+    for(const file of incoming){
+      if(file.size>25*1024*1024){setExtractMsg("Error: "+file.name+" exceeds 25MB");continue;}
+      const id=Date.now()+"-"+Math.random().toString(36).slice(2,8);
+      const preview=file.type.startsWith("image/")?URL.createObjectURL(file):null;
+      nf.push({id,file,preview,name:file.name,size:file.size,type:file.type,status:"pending",result:null});
+    }
+    if(nf.length)setUploadFiles(prev=>[...prev,...nf]);
+  };
+  const removeUploadFile=(id)=>{setUploadFiles(prev=>{const f=prev.find(x=>x.id===id);if(f&&f.preview)URL.revokeObjectURL(f.preview);return prev.filter(x=>x.id!==id)});};
+  const clearUploadFiles=()=>{uploadFiles.forEach(f=>{if(f.preview)URL.revokeObjectURL(f.preview)});setUploadFiles([]);setExtractMsg("");};
+  const fmtSize=(b)=>b<1024?b+" B":b<1048576?(b/1024).toFixed(1)+" KB":(b/1048576).toFixed(1)+" MB";
+  const fileIcon=(t)=>t.startsWith("image/")?"🖼️":t==="application/pdf"?"📄":t.includes("spreadsheet")||t==="text/csv"?"📊":"📎";
+
+  /* ── Camera/Screenshot ── */
+  const openCamera=async()=>{
+    try{const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});streamRef.current=stream;setCameraOpen(true);setTimeout(()=>{if(videoRef.current){videoRef.current.srcObject=stream;videoRef.current.play()}},100);}catch(e){setExtractMsg("Error: Camera access denied");}
+  };
+  const capturePhoto=()=>{
+    const v=videoRef.current,c=canvasRef.current;if(!v||!c)return;
+    c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+    c.toBlob((blob)=>{if(blob){const ts=new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);const file=new File([blob],"capture-"+ts+".png",{type:"image/png"});addUploadFiles([file]);setExtractMsg("Photo captured!");}},
+    "image/png");
+  };
+  const closeCamera=()=>{if(streamRef.current){streamRef.current.getTracks().forEach(t=>t.stop());streamRef.current=null;}setCameraOpen(false);};
+  const captureScreen=async()=>{
+    try{const stream=await navigator.mediaDevices.getDisplayMedia({video:true});const track=stream.getVideoTracks()[0];const ic=new ImageCapture(track);const bmp=await ic.grabFrame();track.stop();
+    const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;c.getContext("2d").drawImage(bmp,0,0);
+    c.toBlob((blob)=>{if(blob){const ts=new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);const file=new File([blob],"screenshot-"+ts+".png",{type:"image/png"});addUploadFiles([file]);setExtractMsg("Screenshot captured!");}},
+    "image/png");}catch(e){setExtractMsg("Screenshot cancelled or unsupported");}
+  };
+
+  /* ── Submit All — extract each file via backend ── */
+  const submitAllFiles=async()=>{
+    if(!uploadFiles.length)return;
+    setExtracting(true);setExtractMsg("Processing "+uploadFiles.length+" file(s) with AI…");
+    let lastResult=null;
+    for(let i=0;i<uploadFiles.length;i++){
+      const uf=uploadFiles[i];
+      if(uf.status==="done")continue;
+      setUploadFiles(prev=>prev.map(f=>f.id===uf.id?{...f,status:"extracting"}:f));
+      try{
+        const file_base64=await toBase64(uf.file);
+        const r=await fetch(API+"/api/pricing-tool/extract",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({file_base64:file_base64,file_name:uf.name,media_type:uf.type,file_type:uf.type})});
+        if(!r.ok){const b=await r.json().catch(()=>({}));const det=b.detail?(typeof b.detail==="string"?b.detail:JSON.stringify(b.detail)):"Failed ("+r.status+")";throw new Error(det);}
+        const d=await r.json();
+        setUploadFiles(prev=>prev.map(f=>f.id===uf.id?{...f,status:"done",result:d}:f));
+        lastResult=d;
+        // Show AI consensus info
+        var aiInfo=d._providers?d._providers.join(" · "):"";
+        var conf=d._confidence||"";
+        var pct=d._agreePct||0;
+        if(aiInfo)setExtractMsg((i+1)+"/"+uploadFiles.length+" done — "+aiInfo+(conf?" · "+conf.toUpperCase()+" ("+pct+"% agree)":""));
+        // Auto-fill from last successful extraction
+        if(d.merchant_name)setMName(d.merchant_name);
+        if(d.vertical)setVert(d.vertical);
+        if(d.monthly_volume||d.volume)setVol(+(d.monthly_volume||d.volume)||vol);
+        if(d.transactions||d.monthly_transactions)setTxns(+(d.transactions||d.monthly_transactions)||txns);
+        if(d.cc_percent||d.cc_pct)setCcPct(+(d.cc_percent||d.cc_pct)||ccPct);
+        // Sync to audit intake
+        try{await fetch(API+"/api/audit/intake",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({business_name:d.merchant_name||mName,volume:d.monthly_volume||d.volume||vol,current_rate:d.effective_rate||d.current_rate||0,processor:d.processor||"Unknown",industry:d.vertical||vert,source:"pricing-tool"})});}catch{}
+      }catch(e){
+        setUploadFiles(prev=>prev.map(f=>f.id===uf.id?{...f,status:"error",result:e.message}:f));
+      }
+    }
+    if(lastResult){
+      var provCount=lastResult._providerCount||1;
+      var provNames=(lastResult._providers||[]).join(", ")||"AI";
+      var conf=(lastResult._confidence||"").toUpperCase();
+      var rateTxt=(lastResult.effective_rate||lastResult.current_rate)?" · Current rate: "+(lastResult.effective_rate||lastResult.current_rate)+"%":"";
+      setExtractMsg("✓ Extracted by "+provCount+" AI"+(provCount>1?"s":"")+" ("+provNames+") — "+conf+rateTxt);
+    } else setExtractMsg("Processing complete.");
+    setExtracting(false);
+  };
+
+  const doLogin=useCallback(async()=>{
+    setLogging(true);setLoginErr("");
+    const tryOnce=async(ct,bd)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),30000);const r=await fetch(API+"/api/login",{method:"POST",headers:{"Content-Type":ct},body:bd,signal:c.signal});clearTimeout(t);return r;};
+    try{
+      let r;
+      try{r=await tryOnce("application/json",JSON.stringify({email,password:pass}))}catch(e){
+        if(e.name==="AbortError"){setLoginErr("Timed out \u2014 try again");setLogging(false);return;}
+        setLoginErr("Cannot reach server ("+e.message+")");setLogging(false);return;}
+      if(r.status===422){try{r=await tryOnce("application/x-www-form-urlencoded","username="+encodeURIComponent(email)+"&password="+encodeURIComponent(pass))}catch(e){setLoginErr("Server error: "+e.message);setLogging(false);return;}}
+      if(!r.ok){let m="Login failed ("+r.status+")";try{const b=await r.json();m=b.detail?(typeof b.detail==="string"?b.detail:JSON.stringify(b.detail)):m}catch{};setLoginErr(m);setLogging(false);return;}
+      const d=await r.json();setToken(d.token);
+      try{const p=JSON.parse(atob(d.token.split(".")[1]));setRole(p.role||"employee")}catch{setRole("employee")}
+      setAuthed(true);setLoginErr("");
+    }catch(e){setLoginErr(String(e))}
+    setLogging(false);
+  },[email,pass]);
+
+  const isAdmin=role==="admin";
+  const repPct=isAdmin?1.0:EMP_RESIDUAL_CUT;
+  const repLabel=isAdmin?"NexusPay Residual":"Your Residual";
+  const results=useMemo(()=>{
+    let p=PROGRAMS;if(gf!=="all")p=p.filter(x=>x.group===gf);
+    return p.map(x=>{const r=calc(x.id,selModel,vol,txns,ccPct,amu,sellAu,pf,isMajor);return{...x,result:{...r,displayRes:r.residual*repPct,displayPer100k:r.per100k*repPct}};}).sort((a,b)=>b.result.displayRes-a.result.displayRes);
+  },[selModel,vol,txns,ccPct,amu,sellAu,pf,isMajor,gf,repPct]);
+  const best=results[0];
+
+  // Build quote payload from current state
+  const buildPayload=()=>({merchant_name:mName,vertical:vert,volume:vol,transactions:txns,avg_ticket:avgTkt,cc_pct:ccPct,pricing_model:selModel,markup_pct:amu,auth_sell:sellAu,program_fee:pf,is_major:isMajor,best_program:best?best.label:"",best_residual:best?best.result.residual:0,merchant_eff_rate:best?best.result.merchantEffRate:0,all_results:results.map(r=>({program:r.label,split:r.split,residual:r.result.residual,merchant_rate:r.result.merchantEffRate.toFixed(2),beats_market:r.result.beatsMarket}))});
+
+  const saveQuote=async()=>{
+    setQStatus({type:"loading",msg:"Saving quote\u2026"});
+    try{
+      const r=await fetch(API+"/api/quotes",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify(buildPayload())});
+      if(!r.ok){const b=await r.json().catch(()=>({}));throw new Error((b.detail?(typeof b.detail==="string"?b.detail:JSON.stringify(b.detail)):"Save failed")||"Save failed ("+r.status+")");}
+      const d=await r.json();setQStatus({type:"ok",msg:"Quote saved! ID: "+(d.id||d.quote_id||"OK")});
+    }catch(e){setQStatus({type:"err",msg:e.message});}
+  };
+
+  const generateProposal=async()=>{
+    if(!mName){setQStatus({type:"err",msg:"Enter a merchant name first."});return;}
+    setQStatus({type:"loading",msg:"Running Claude + GPT-4o + Gemini + Grok consensus analysis\u2026"});setProposal("");
+    try{
+      const r=await fetch(API+"/api/quotes/analyze",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify(buildPayload())});
+      if(!r.ok){const b=await r.json().catch(()=>({}));throw new Error((b.detail?(typeof b.detail==="string"?b.detail:JSON.stringify(b.detail)):"Analysis failed")||"Analysis failed ("+r.status+")");}
+      const d=await r.json();
+      const txt=d.analysis||d.proposal||d.recommendation||d.result||JSON.stringify(d,null,2);
+      setProposal(txt);setQStatus({type:"ok",msg:"Proposal generated!"});
+    }catch(e){setQStatus({type:"err",msg:e.message});}
+  };
+
+  const emailProposal=()=>{
+    const b=best?best.result:null;
+    const subj="NexusPay Pricing Proposal"+(mName?" \u2014 "+mName:"");
+    const body=["Hi"+(mName?" "+mName.split(" ")[0]:"")+",%0D%0A%0D%0A",
+      "Thank you for your interest in NexusPay merchant services. Based on our analysis of your business:%0D%0A%0D%0A",
+      "Monthly Volume: $"+fmt(vol)+"%0D%0A",
+      "Avg Ticket: $"+avgTkt.toFixed(2)+"%0D%0A",
+      "Recommended Model: "+(MODELS.find(m=>m.id===selModel)||{}).label+"%0D%0A",
+      b?"Effective Rate: "+b.merchantEffRate.toFixed(2)+"% (below market average of "+b.marketRate.toFixed(2)+"%)%0D%0A":"",
+      "%0D%0AWe\u2019d love to walk you through the details. Please let us know a good time to connect.%0D%0A%0D%0A",
+      "Best regards,%0D%0ANexusPay Services%0D%0A(720) 689-7272%0D%0Anexuspayservices.com"].join("");
+    window.open("mailto:?subject="+encodeURIComponent(subj.replace(/ \u2014 /," - "))+"&body="+body);
+  };
+
+  const viewQuote=()=>{
+    const b=best?best.result:null;
+    const w=window.open("","_blank");
+    w.document.write("<html><head><title>NexusPay Quote"+(mName?" - "+mName:"")+"</title><style>body{font-family:'DM Sans',system-ui,sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#0f1a2e}h1{font-size:22px;color:#0b1d3a;border-bottom:2px solid #1a6dd4;padding-bottom:8px}h2{font-size:14px;color:#3d5068;margin-top:20px}table{width:100%;border-collapse:collapse;margin:10px 0}td{padding:6px 8px;border-bottom:1px solid #e8edf3;font-size:13px}.r{text-align:right;font-family:monospace}.g{color:#16a34a;font-weight:700}.lbl{color:#6b829e;font-size:11px}.footer{margin-top:30px;text-align:center;font-size:10px;color:#94a7bd;border-top:1px solid #e8edf3;padding-top:12px}@media print{body{margin:0}}</style></head><body>");
+    w.document.write("<h1>NexusPay Pricing Proposal</h1>");
+    w.document.write("<table><tr><td class='lbl'>Merchant</td><td>"+(mName||"N/A")+"</td><td class='lbl'>Vertical</td><td>"+vert+"</td></tr>");
+    w.document.write("<tr><td class='lbl'>Monthly Volume</td><td>$"+fmt(vol)+"</td><td class='lbl'>Avg Ticket</td><td>$"+avgTkt.toFixed(2)+"</td></tr>");
+    w.document.write("<tr><td class='lbl'>Transactions</td><td>"+txns.toLocaleString()+"</td><td class='lbl'>CC/Debit Split</td><td>"+ccPct+"/"+(100-ccPct)+"%</td></tr></table>");
+    if(isAdmin){
+      w.document.write("<h2>"+((MODELS.find(m=>m.id===selModel)||{}).label||"")+" \u2014 All Programs</h2><table><tr style='border-bottom:2px solid #d4dce8'><td style='font-weight:700'>Program</td><td class='r' style='font-weight:700'>NexusPay Residual</td><td class='r' style='font-weight:700'>Merchant Rate</td><td class='r' style='font-weight:700'>vs Market</td></tr>");
+      results.forEach(function(r){w.document.write("<tr><td>"+r.label+" ("+r.split+")</td><td class='r g'>$"+fmt(r.result.residual)+"</td><td class='r'>"+r.result.merchantEffRate.toFixed(2)+"%</td><td class='r' style='color:"+(r.result.beatsMarket?"#16a34a":"#dc2626")+"'>"+(r.result.beatsMarket?"\u2713 Below":"\u2717 Above")+" "+r.result.marketRate.toFixed(2)+"%</td></tr>")});
+    } else {
+      w.document.write("<h2>"+((MODELS.find(m=>m.id===selModel)||{}).label||"")+" \u2014 Your Earnings</h2><table><tr style='border-bottom:2px solid #d4dce8'><td style='font-weight:700'>Program</td><td class='r' style='font-weight:700'>Your Monthly Pay</td><td class='r' style='font-weight:700'>Merchant Rate</td></tr>");
+      results.forEach(function(r){w.document.write("<tr><td>"+r.label.replace(/ \d+% \u00b7 /," \u00b7 ").replace(/ \d+%/,"")+"</td><td class='r g'>$"+fmt(r.result.displayRes)+"</td><td class='r'>"+r.result.merchantEffRate.toFixed(2)+"%</td></tr>")});
+    }
+    w.document.write("</table>");
+    if(proposal){w.document.write("<h2>AI Analysis</h2><div style='background:#f5f7fa;padding:14px;border-radius:8px;font-size:12px;line-height:1.6;white-space:pre-wrap'>"+proposal.replace(/</g,"&lt;")+"</div>")}
+    w.document.write("<div class='footer'>NexusPay, LLC \u2014 Veteran-Owned Merchant Services \u2014 nexuspayservices.com \u2014 (720) 689-7272</div></body></html>");
+    w.document.close();
+  };
+
+  if(!authed)return(
+    React.createElement("div",{className:"login-wrap"},React.createElement("div",{className:"login-box"},
+      React.createElement("div",{className:"login-title"},"NEXUSPAY"),
+      React.createElement("div",{className:"login-sub"},"PRICING INTELLIGENCE"),
+      loginErr&&React.createElement("div",{className:"login-err",style:{display:"block"}},loginErr),
+      React.createElement("div",{style:{marginTop:20}},
+        React.createElement("input",{className:"fld",placeholder:"Email",value:email,onChange:e=>setEmail(e.target.value),onKeyDown:e=>e.key==="Enter"&&doLogin()}),
+        React.createElement("input",{className:"fld",type:"password",placeholder:"Password",value:pass,onChange:e=>setPass(e.target.value),onKeyDown:e=>e.key==="Enter"&&doLogin()}),
+        React.createElement("button",{className:"btn-login",onClick:doLogin,disabled:logging},logging?"Authenticating\u2026":"SIGN IN")),
+      React.createElement("div",{style:{textAlign:"center",marginTop:16,fontSize:10,color:"var(--t4)"}},"Veteran-Owned \u00b7 NexusPay Services, LLC")))
+  );
+
+  return React.createElement("div",{className:"shell"},
+    React.createElement("div",{className:"header"},
+      React.createElement("div",{style:{display:"flex",alignItems:"center"}},React.createElement("span",{className:"hdr-brand"},"NEXUSPAY"),React.createElement("span",{className:"hdr-badge"},"PRICING TOOL")),
+      React.createElement("div",{style:{display:"flex",alignItems:"center"}},React.createElement("span",{className:"role-pill "+(role==="admin"?"role-admin":"role-emp")},role.toUpperCase()),React.createElement("button",{className:"btn-out",onClick:()=>{setAuthed(false);if(typeof showPublicView==='function')showPublicView()}},"Sign Out"))),
+    React.createElement("div",{className:"panel"},
+      React.createElement("div",{className:"panel-label"},"MERCHANT PROFILE"),
+      React.createElement("div",{className:"g3"},
+        mkI("Merchant Name",mName,v=>setMName(v),"text"),
+        React.createElement("div",null,React.createElement("label",{className:"lbl"},"Vertical"),React.createElement("select",{className:"inp",value:vert,onChange:e=>setVert(e.target.value)},VERTS.map(v=>React.createElement("option",{key:v},v)))),
+        mkI("Monthly Volume",vol,v=>setVol(+v||0),"number","$"),
+        mkI("Transactions / Mo",txns,v=>setTxns(+v||0),"number"),
+        mkI("Avg Ticket",avgTkt.toFixed(2),onAvgTkt,"number","$"),
+        mkI("CC %",ccPct,v=>setCcPct(Math.min(100,Math.max(0,+v||0))),"number",null,"%"),
+        mkI("Program Fee (CD/Dual)",pf,v=>setPf(+v||0),"number",null,"%")),
+      React.createElement("div",{style:{marginTop:10}},React.createElement("label",{style:{display:"flex",alignItems:"center",gap:6,fontSize:11,color:"var(--t2)",cursor:"pointer"}},React.createElement("input",{type:"checkbox",checked:isMajor,onChange:e=>setIsMajor(e.target.checked),style:{accentColor:"var(--blue)"}}),"Major Merchant (30K+ monthly)")),
+      /* Multi-file Upload / Camera / Screenshot */
+      React.createElement("canvas",{ref:canvasRef,style:{display:"none"}}),
+      React.createElement("input",{ref:fileRef,type:"file",accept:"image/*,application/pdf,.csv,.xlsx,.doc,.docx",multiple:true,style:{display:"none"},capture:undefined,onChange:e=>{if(e.target.files&&e.target.files.length)addUploadFiles([...e.target.files]);e.target.value="";}}),
+      React.createElement("div",{className:"upload-zone"+(extracting?" busy":"")+(dragOver?" dragover":""),
+        onClick:()=>{if(!extracting&&fileRef.current)fileRef.current.click()},
+        onDragOver:e=>{e.preventDefault();setDragOver(true)},onDragLeave:()=>setDragOver(false),
+        onDrop:e=>{e.preventDefault();setDragOver(false);if(e.dataTransfer.files.length)addUploadFiles([...e.dataTransfer.files])}},
+        React.createElement("div",{style:{fontSize:28}},extracting?"⏳":dragOver?"📥":"📁"),
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"var(--t1)"}},extracting?"Extracting with AI…":dragOver?"Drop files here":"Drop files or click to browse"),
+        React.createElement("div",{className:"upload-hint"},"Upload statements, photos, PDFs, images — AI will auto-fill merchant fields. 25MB max per file.")),
+      React.createElement("div",{className:"upload-actions"},
+        React.createElement("button",{className:"upload-act",onClick:e=>{e.stopPropagation();if(fileRef.current)fileRef.current.click()}},"📁 Browse Files"),
+        React.createElement("button",{className:"upload-act"+(cameraOpen?" active":""),onClick:e=>{e.stopPropagation();cameraOpen?closeCamera():openCamera()}},"📷 Camera"),
+        React.createElement("button",{className:"upload-act",onClick:e=>{e.stopPropagation();captureScreen()}},"🖥️ Screenshot")),
+      /* Camera panel */
+      cameraOpen&&React.createElement("div",{className:"camera-panel"},
+        React.createElement("video",{ref:videoRef,autoPlay:true,playsInline:true,muted:true}),
+        React.createElement("div",{className:"camera-bar"},
+          React.createElement("button",{className:"cam-btn",onClick:capturePhoto},"📸"),
+          React.createElement("button",{className:"cam-btn cam-close",onClick:closeCamera},"✕"))),
+      /* File preview grid */
+      uploadFiles.length>0&&React.createElement("div",null,
+        React.createElement("div",{className:"upload-bar"},
+          React.createElement("span",{className:"upload-bar-info"},uploadFiles.length+" file"+(uploadFiles.length!==1?"s":"")+" · "+fmtSize(uploadFiles.reduce((a,f)=>a+f.size,0))),
+          React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+            React.createElement("button",{className:"btn-clear-all",onClick:clearUploadFiles},"Clear all"),
+            React.createElement("button",{className:"btn-submit-all",onClick:submitAllFiles,disabled:extracting||uploadFiles.every(f=>f.status==="done")},
+              extracting?React.createElement("span",null,"⏳ Processing…"):React.createElement("span",null,"🚀 Submit All ("+uploadFiles.filter(f=>f.status==="pending").length+" pending)")))),
+        React.createElement("div",{className:"file-grid"},uploadFiles.map(uf=>
+          React.createElement("div",{key:uf.id,className:"file-card"+(uf.status==="done"?" extracted":"")+(uf.status==="error"?" error":"")},
+            React.createElement("div",{className:"file-thumb"},uf.preview?React.createElement("img",{src:uf.preview,alt:""}):React.createElement("span",{style:{fontSize:28}},fileIcon(uf.type))),
+            React.createElement("div",{className:"file-info"},
+              React.createElement("div",{className:"file-name"},uf.name),
+              React.createElement("div",{className:"file-size"},fmtSize(uf.size)),
+              React.createElement("div",{className:"file-status",style:{color:uf.status==="done"?"var(--teal)":uf.status==="error"?"var(--red)":uf.status==="extracting"?"var(--blue)":"var(--t4)"}},
+                uf.status==="extracting"?"⏳ Extracting…":uf.status==="done"?"✓ Extracted":uf.status==="error"?"✗ Failed":"")),
+            React.createElement("button",{className:"file-rm",onClick:e=>{e.stopPropagation();removeUploadFile(uf.id)}},"✕"))))),
+      extractMsg&&React.createElement("div",{className:"upload-status "+(extractMsg.startsWith("Error")?"err":extracting?"loading":"ok")},extractMsg)),
+    React.createElement("div",{className:"model-tabs"},MODELS.map(m=>React.createElement("button",{key:m.id,className:"mtab"+(selModel===m.id?" active":""),onClick:()=>setSelModel(m.id)},m.icon+" "+m.label))),
+    React.createElement("div",{className:"group-tabs"},["all","Beacon","Maverick","Kurv","North"].map(g=>React.createElement("button",{key:g,className:"gtab"+(gf===g?" active":""),onClick:()=>setGf(g)},g==="all"?"ALL PROCESSORS":g))),
+    React.createElement("div",{className:"panel"},
+      React.createElement("div",{className:"panel-label"},"YOUR SELL PRICE"),
+      React.createElement("div",{className:"g2"},
+        React.createElement("div",null,React.createElement("label",{className:"lbl"},"Markup % ",React.createElement("span",{className:"slider-note"},"(max "+maxMu.toFixed(2)+"%"+(selModel==="surcharge"?" \u2014 CO cap":"")+")")),React.createElement("input",{type:"range",min:0,max:maxMu,step:0.01,value:amu,onChange:e=>setSellMu(+e.target.value)}),React.createElement("div",{className:"slider-row"},React.createElement("span",{className:"slider-edge"},"0.00%"),React.createElement("span",{className:"slider-val"},amu.toFixed(2)+"%"),React.createElement("span",{className:"slider-edge"},maxMu.toFixed(2)+"%"))),
+        React.createElement("div",null,React.createElement("label",{className:"lbl"},"Auth Fee"),React.createElement("input",{type:"range",min:0,max:0.25,step:0.01,value:sellAu,onChange:e=>setSellAu(+e.target.value)}),React.createElement("div",{className:"slider-row"},React.createElement("span",{className:"slider-edge"},"$0.00"),React.createElement("span",{className:"slider-val"},"$"+sellAu.toFixed(2)),React.createElement("span",{className:"slider-edge"},"$0.25")))),
+      selModel==="surcharge"&&React.createElement("div",{className:"warn-bar"},"\u26a0 Colorado surcharge capped at 2.00%. Debit cards excluded."),
+      !isAdmin&&results.some(function(r){return r.result.belowFloor})&&React.createElement("div",{className:"warn-bar"},"\u26a0 Minimum pricing has been applied to one or more programs. Contact admin for override approval.")),
+    best&&React.createElement("div",{className:"best-banner"},
+      React.createElement("div",null,React.createElement("div",{className:"bb-tag"},"BEST OPTION"),React.createElement("div",{className:"bb-title"},(isAdmin?best.label:best.label.replace(/ \d+% \u00b7 /," \u00b7 ").replace(/ \d+%/,""))+" \u2014 "+(MODELS.find(m=>m.id===selModel)||{}).label)),
+      React.createElement("div",{style:{textAlign:"right"}},React.createElement("div",{className:"bb-val"},"$"+fmt(best.result.displayRes),React.createElement("span",null,"/mo")),React.createElement("div",{className:"bb-market "+(best.result.beatsMarket?"below":"above")},"Merchant: "+best.result.merchantEffRate.toFixed(2)+"% "+(best.result.beatsMarket?"\u2713 Below Market":"\u2717 Above Market")+" ("+best.result.marketRate.toFixed(2)+"%)"))),
+    React.createElement("div",{className:"results-grid"},results.map((r,i)=>{
+      const isX=expanded===r.id,isB=i===0;
+      return React.createElement("div",{key:r.id,className:"rcard"+(isB?" best":"")+(r.result.belowFloor&&isAdmin?" below-floor":"")+(isX?" expanded":""),onClick:()=>setExpanded(isX?null:r.id)},
+        /* Card header — employees see clean program name, no splits */
+        React.createElement("div",{className:"rc-hdr"},React.createElement("div",{className:"rc-name"},React.createElement("div",{className:"rc-dot",style:{background:r.color}}),React.createElement("span",{className:"rc-lbl"},isAdmin?r.label:r.label.replace(/ \d+% \u00b7 /," \u00b7 ").replace(/ \d+%/,"")),isAdmin&&React.createElement("span",{className:"rc-split"},r.split)),React.createElement("div",{style:{display:"flex",gap:4}},isB&&React.createElement("span",{className:"badge badge-best"},"BEST"),r.result.belowFloor&&isAdmin&&React.createElement("span",{className:"badge badge-floor"},"BELOW FLOOR"))),
+        /* Key numbers */
+        React.createElement("div",{className:"nums"},nb(isAdmin?"NexusPay Residual":"Your Monthly Pay","$"+fmt(r.result.displayRes),"/month",r.result.displayRes>0?"var(--green)":"var(--red)"),nb("Merchant Rate",r.result.merchantEffRate.toFixed(2)+"%",r.result.beatsMarket?"Below Market":"Above Market",r.result.beatsMarket?"var(--teal)":"var(--red)"),nb("Per $100K","$"+fmt(r.result.displayPer100k),"retained","var(--t1)")),
+        /* Expanded detail */
+        isX&&React.createElement("div",{className:"detail"},
+          isAdmin&&React.createElement("div",{className:"detail-expl"},r.result.explanation),
+          !isAdmin&&React.createElement("div",{className:"detail-expl"},"Your earnings for this program based on the merchant profile above. Tap cards to compare."),
+          /* ADMIN: full revenue/cost/margin breakdown */
+          isAdmin&&React.createElement("table",{className:"dtable"},React.createElement("tbody",null,r.result.rows.map((rw,j)=>React.createElement("tr",{key:j},React.createElement("td",{style:{color:rw.bold?"var(--t1)":rw.hl?"var(--green)":"var(--t2)",fontWeight:(rw.bold||rw.hl)?700:400}},rw.hl?"NEXUSPAY RESIDUAL ("+pct(SPLITS[r.id])+")":rw.l),React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:rw.hl?"var(--green)":rw.v<0?"var(--red)":"var(--t1)",fontWeight:rw.hl?700:400,fontSize:rw.hl?15:11}},rw.v<0?"-$"+fmt(Math.abs(rw.v)):"$"+fmt(rw.v)),React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:10}},rw.n||""))))),
+          /* ADMIN: buy cost breakdown */
+          isAdmin&&React.createElement("div",{className:"detail-sub"},"BUY COST BREAKDOWN"),
+          isAdmin&&React.createElement("table",{className:"dtable"},React.createElement("tbody",null,r.result.buyCostRows.map((rw,j)=>React.createElement("tr",{key:j},React.createElement("td",{style:{color:"var(--t3)"}},rw.l),React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--t2)",fontSize:10}},"$"+fmt(rw.v)),React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:9}},rw.n||""))))),
+          /* EMPLOYEE: simple summary only */
+          !isAdmin&&React.createElement("table",{className:"dtable"},React.createElement("tbody",null,
+            React.createElement("tr",null,React.createElement("td",{style:{color:"var(--t2)"}},"Your Monthly Pay"),React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--green)",fontWeight:700,fontSize:15}},"$"+fmt(r.result.displayRes)),React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:10}},"Recurring monthly")),
+            React.createElement("tr",null,React.createElement("td",{style:{color:"var(--t2)"}},"Merchant Effective Rate"),React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:r.result.beatsMarket?"var(--teal)":"var(--red)",fontWeight:600}},r.result.merchantEffRate.toFixed(2)+"%"),React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:10}},(r.result.beatsMarket?"Below":"Above")+" market avg "+r.result.marketRate.toFixed(2)+"%")),
+            React.createElement("tr",null,React.createElement("td",{style:{color:"var(--t2)"}},"Per $100K Volume"),React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--t1)",fontWeight:600}},"$"+fmt(r.result.displayPer100k)),React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:10}},"Your retained earnings")))),
+          /* BONUS SECTION — both roles, different detail levels */
+          (r.result.bonus.upfront>0)&&React.createElement("div",null,
+            React.createElement("div",{className:"detail-sub",style:{marginTop:14,color:"var(--blue)"}},isAdmin?"ONE-TIME & RECURRING BONUSES \u2014 "+r.result.bonus.label:"YOUR ACTIVATION BONUSES"),
+            React.createElement("table",{className:"dtable"},React.createElement("tbody",null,
+              React.createElement("tr",null,
+                React.createElement("td",{style:{color:"var(--t2)"}},isAdmin?"Upfront Bonus (per merchant)":"Activation Bonus"),
+                React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--green)",fontWeight:600}},"$"+fmt(isAdmin?r.result.bonus.upfront:r.result.bonus.upfront*EMP_BONUS_CUT)),
+                React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:9}},isAdmin?"Paid on activation":"Per merchant activated")),
+              isAdmin&&React.createElement("tr",null,
+                React.createElement("td",{style:{color:"var(--t2)"}},"True-Up Bonus"),
+                React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--t1)"}},""+r.result.bonus.trueUp),
+                React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:9}},"Multiplier of monthly residual")),
+              isAdmin&&React.createElement("tr",null,
+                React.createElement("td",{style:{color:"var(--t2)"}},"Bonus Cap"),
+                React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--t1)"}},"$"+fmt(r.result.bonus.cap)),
+                React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:9}},"Maximum per merchant")),
+              r.result.bonus.pci_mo>0&&React.createElement("tr",null,
+                React.createElement("td",{style:{color:"var(--t2)"}},isAdmin?"PCI Compliance Residual":"PCI Bonus"),
+                React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--green)"}},"$"+fmt(isAdmin?r.result.bonus.pci_mo:r.result.bonus.pci_mo*EMP_BONUS_CUT)+"/mo"),
+                React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:9}},isAdmin?"Per merchant, recurring":"Monthly per merchant")),
+              isAdmin&&r.id.startsWith("north")&&React.createElement("tr",null,
+                React.createElement("td",{style:{color:"var(--t2)",fontWeight:600}},"Fast Start Agent Bonus"),
+                React.createElement("td",{style:{textAlign:"right",fontFamily:"var(--mono)",color:"var(--blue)",fontWeight:600}},"$75\u2013$150/MID"),
+                React.createElement("td",{style:{paddingLeft:10,color:"var(--t4)",fontSize:9}},"20-49: $75 \u00b7 50-74: $100 \u00b7 75+: $150 ($20K cap)"))
+            ))),
+          !isAdmin&&r.result.bonus.upfront>0&&React.createElement("div",{style:{marginTop:8,fontSize:10,color:"var(--t4)",fontStyle:"italic"}},"Bonus amounts shown are your direct payouts per merchant activated.")));})),
+    /* QUOTE ACTIONS PANEL */
+    React.createElement("div",{className:"actions-panel"},
+      React.createElement("div",{className:"panel-label"},"QUOTE ACTIONS"),
+      React.createElement("div",{className:"actions-bar"},
+        React.createElement("button",{className:"act-btn act-save",onClick:saveQuote,disabled:qStatus&&qStatus.type==="loading"},"\uD83D\uDCBE Save Quote"),
+        React.createElement("button",{className:"act-btn act-gen",onClick:generateProposal,disabled:qStatus&&qStatus.type==="loading"},"\uD83E\uDD16 Generate AI Proposal"),
+        React.createElement("button",{className:"act-btn act-view",onClick:viewQuote},"\uD83D\uDCC4 View Quote"),
+        React.createElement("button",{className:"act-btn act-email",onClick:emailProposal},"\u2709\uFE0F Email Proposal")),
+      qStatus&&React.createElement("div",{className:"act-status "+qStatus.type},qStatus.msg),
+      proposal&&React.createElement("div",{className:"proposal-box"},proposal)),
+    isAdmin&&React.createElement("div",{className:"floor-ref"},React.createElement("div",{className:"floor-label"},"EMPLOYEE MINIMUM PRICING FLOORS"),React.createElement("div",{className:"floor-grid"},PROGRAMS.filter(p=>!p.id.includes("70")).map(p=>{const f=FLOORS[p.id];return React.createElement("div",{key:p.id},React.createElement("b",null,p.short+": "),f.markup.toFixed(2)+"%"+(f.auth?" + $"+f.auth.toFixed(2):"")+(f.maxTotal?" (max "+f.maxTotal.toFixed(2)+"%)":""));}))),
+    React.createElement("div",{className:"footer"},"NexusPay, LLC \u2014 Veteran-Owned Merchant Services \u2014 nexuspayservices.com \u2014 (720) 689-7272"));
+}
+function mkI(l,v,fn,t,pfx,sfx){return React.createElement("div",null,React.createElement("label",{className:"lbl"},l),React.createElement("div",{className:"inp-row"},pfx&&React.createElement("span",{className:"inp-pfx"},pfx),React.createElement("input",{className:"inp",type:t||"number",value:v,onChange:e=>fn(t==="text"?e.target.value:e.target.value)}),sfx&&React.createElement("span",{className:"inp-sfx"},sfx)))}
+function nb(l,v,s,c){return React.createElement("div",null,React.createElement("div",{className:"num-lbl"},l),React.createElement("div",{className:"num-val",style:{color:c}},v),s&&React.createElement("div",{className:"num-sub"},s))}
+ReactDOM.render(React.createElement(App),document.getElementById("app"));
+</script>
+</body>
+</html>
