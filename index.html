@@ -697,7 +697,14 @@ function fmt(n){return n.toLocaleString("en-US",{minimumFractionDigits:2,maximum
 function pct(n){return(n*100).toFixed(0)+"%"}
 
 function App(){
-  const[authed,setAuthed]=useState(false),[token,setToken]=useState(""),[role,setRole]=useState("");
+  // -- Auth state -- hydrate from localStorage so token survives re-renders, F12, refresh, and tab navigation --
+  const _lsGet=(k,d)=>{try{const v=window.localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}};
+  const _lsSet=(k,v)=>{try{window.localStorage.setItem(k,v);}catch(e){}};
+  const _lsDel=(k)=>{try{window.localStorage.removeItem(k);}catch(e){}};
+  const _initialToken=_lsGet("nxp_token","");
+  const _initialRole=_lsGet("nxp_role","");
+  const _initialAuthed=!!_initialToken;
+  const[authed,setAuthed]=useState(_initialAuthed),[token,setToken]=useState(_initialToken),[role,setRole]=useState(_initialRole);
   const[email,setEmail]=useState(""),[pass,setPass]=useState(""),[loginErr,setLoginErr]=useState(""),[logging,setLogging]=useState(false);
   const[mName,setMName]=useState(""),[vert,setVert]=useState("Restaurant / QSR");
   const[vol,setVol]=useState(50000),[txns,setTxns]=useState(1000),[ccPct,setCcPct]=useState(70);
@@ -808,8 +815,8 @@ function App(){
         setLoginErr("Cannot reach server ("+e.message+")");setLogging(false);return;}
       if(r.status===422){try{r=await tryOnce("application/x-www-form-urlencoded","username="+encodeURIComponent(email)+"&password="+encodeURIComponent(pass))}catch(e){setLoginErr("Server error: "+e.message);setLogging(false);return;}}
       if(!r.ok){let m="Login failed ("+r.status+")";try{const b=await r.json();m=b.detail?(typeof b.detail==="string"?b.detail:JSON.stringify(b.detail)):m}catch{};setLoginErr(m);setLogging(false);return;}
-      const d=await r.json();setToken(d.token);
-      try{const p=JSON.parse(atob(d.token.split(".")[1]));setRole(p.role||"employee")}catch{setRole("employee")}
+      const d=await r.json();setToken(d.token);_lsSet("nxp_token",d.token||"");
+      try{const p=JSON.parse(atob(d.token.split(".")[1]));const _r=p.role||"employee";setRole(_r);_lsSet("nxp_role",_r);}catch{setRole("employee");_lsSet("nxp_role","employee");}
       setAuthed(true);setLoginErr("");
     }catch(e){setLoginErr(String(e))}
     setLogging(false);
@@ -828,6 +835,7 @@ function App(){
   const buildPayload=()=>({merchant_name:mName,vertical:vert,volume:vol,transactions:txns,avg_ticket:avgTkt,cc_pct:ccPct,pricing_model:selModel,markup_pct:amu,auth_sell:sellAu,program_fee:pf,is_major:isMajor,best_program:best?best.label:"",best_residual:best?best.result.residual:0,merchant_eff_rate:best?best.result.merchantEffRate:0,all_results:results.map(r=>({program:r.label,split:r.split,residual:r.result.residual,merchant_rate:r.result.merchantEffRate.toFixed(2),beats_market:r.result.beatsMarket}))});
 
   const saveQuote=async()=>{
+    if(!token){setQStatus({type:"err",msg:"Session expired. Please sign in again."});setAuthed(false);_lsDel("nxp_token");_lsDel("nxp_role");return;}
     setQStatus({type:"loading",msg:"Saving quote\u2026"});
     try{
       const r=await fetch(API+"/api/quotes",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify(buildPayload())});
@@ -837,6 +845,7 @@ function App(){
   };
 
   const generateProposal=async()=>{
+    if(!token){setQStatus({type:"err",msg:"Session expired. Please sign in again."});setAuthed(false);_lsDel("nxp_token");_lsDel("nxp_role");return;}
     if(!mName){setQStatus({type:"err",msg:"Enter a merchant name first."});return;}
     setQStatus({type:"loading",msg:"Running Claude + GPT-4o + Gemini + Grok consensus analysis\u2026"});setProposal("");
     try{
@@ -898,7 +907,7 @@ function App(){
   return React.createElement("div",{className:"shell"},
     React.createElement("div",{className:"header"},
       React.createElement("div",{style:{display:"flex",alignItems:"center"}},React.createElement("span",{className:"hdr-brand"},"NEXUSPAY"),React.createElement("span",{className:"hdr-badge"},"PRICING TOOL")),
-      React.createElement("div",{style:{display:"flex",alignItems:"center"}},React.createElement("span",{className:"role-pill "+(role==="admin"?"role-admin":"role-emp")},role.toUpperCase()),React.createElement("button",{className:"btn-out",onClick:()=>{setAuthed(false);if(typeof showPublicView==='function')showPublicView()}},"Sign Out"))),
+      React.createElement("div",{style:{display:"flex",alignItems:"center"}},React.createElement("span",{className:"role-pill "+(role==="admin"?"role-admin":"role-emp")},role.toUpperCase()),React.createElement("button",{className:"btn-out",onClick:()=>{setAuthed(false);setToken("");setRole("");_lsDel("nxp_token");_lsDel("nxp_role");if(typeof showPublicView==='function')showPublicView()}},"Sign Out"))),
     React.createElement("div",{className:"panel"},
       React.createElement("div",{className:"panel-label"},"MERCHANT PROFILE"),
       React.createElement("div",{className:"g3"},
