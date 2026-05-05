@@ -387,6 +387,67 @@ button{-webkit-tap-highlight-color:transparent}
   <div id="pub-extract-status" style="margin-top:12px;text-align:center"></div>
 </div>
 
+<!-- FORENSIC AUDIT PANEL (hidden until upload complete) -->
+<div class="panel" id="pub-forensic-panel" style="display:none">
+  <div class="panel-label">FORENSIC AUDIT</div>
+  <div style="background:#f5f5f7;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:24px">
+
+    <!-- Grade Hero -->
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <div id="pub-fa-grade" style="font-family:'Bebas Neue',sans-serif;font-size:96px;line-height:1;letter-spacing:-.02em;color:#1d1d1f;min-width:120px;text-align:center"></div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#86868b;text-transform:uppercase;margin-bottom:4px">FORENSIC AUDIT RATING</div>
+        <div id="pub-fa-label" style="font-size:18px;font-weight:600;color:#1d1d1f;margin-bottom:8px"></div>
+        <div id="pub-fa-position" style="font-size:13px;color:#3d5068;line-height:1.5"></div>
+      </div>
+      <div id="pub-fa-confidence" style="padding:6px 12px;border-radius:980px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:#e8faf5;color:#0c9b8a;align-self:flex-start"></div>
+    </div>
+
+    <!-- Rate Position Bar -->
+    <div id="pub-fa-rate-bar" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.05em;color:#86868b;text-transform:uppercase">Where you stand</div>
+        <div id="pub-fa-yourrate" style="font-size:14px;font-weight:600;color:#1d1d1f"></div>
+      </div>
+      <div style="position:relative;height:8px;background:linear-gradient(to right,#16a34a 0%,#16a34a 25%,#d97706 50%,#dc2626 75%,#dc2626 100%);border-radius:4px">
+        <div id="pub-fa-marker" style="position:absolute;top:-4px;width:4px;height:16px;background:#1d1d1f;border-radius:2px;transform:translateX(-50%);transition:left .4s ease-out"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:#86868b">
+        <span>2.00%</span>
+        <span>2.87% market floor</span>
+        <span>4.35% ceiling</span>
+        <span>5%+</span>
+      </div>
+    </div>
+
+    <!-- Annual Overcharge -->
+    <div id="pub-fa-overcharge" style="display:none;padding:20px;background:#fff;border-radius:14px;text-align:center">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#86868b;text-transform:uppercase;margin-bottom:6px">ESTIMATED ANNUAL OVERCHARGE</div>
+      <div id="pub-fa-overcharge-amt" style="font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:#dc2626;letter-spacing:-.01em"></div>
+      <div id="pub-fa-overcharge-mo" style="font-size:13px;color:#3d5068;margin-top:6px"></div>
+    </div>
+
+    <!-- Findings -->
+    <div id="pub-fa-findings-wrap" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div id="pub-fa-findings-count" style="font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:#d97706"></div>
+        <div>
+          <div style="font-size:15px;font-weight:600;color:#1d1d1f">potential issues detected</div>
+          <div style="font-size:12px;color:#86868b">Top 3 shown below — full report requires account</div>
+        </div>
+      </div>
+      <div id="pub-fa-findings-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- CTA -->
+    <div style="border-top:1px solid #e5e5ea;padding-top:20px;display:flex;flex-direction:column;gap:10px">
+      <button id="pub-fa-cta" onclick="pubFAFullReport()" style="background:#1d1d1f;color:#fff;border:none;border-radius:980px;padding:16px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:52px">Get Your Full Forensic Report  →</button>
+      <div style="font-size:12px;color:#86868b;text-align:center;line-height:1.5">Free account unlocks all findings, downloadable PDF, and ongoing fee monitoring.</div>
+    </div>
+
+  </div>
+</div>
+
 <!-- MODEL -->
 <div class="panel">
   <div class="panel-label">PRICING MODEL</div>
@@ -558,6 +619,8 @@ function pubHandleFiles(files){
         var provs=d._providers||[];
         status.innerHTML='<div style="padding:12px;background:#e8faf5;border-radius:12px;font-size:13px;color:#0c9b8a;font-weight:600">✓ Statement analyzed by '+provs.length+' AI'+(provs.length>1?'s':'')+' — fields auto-filled</div>';
         pubCalc();
+        // Render forensic audit panel
+        try{ pubRenderForensic(d); }catch(err){ /* never break upload UX */ }
       } else {
         status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Could not read statement — try a clearer photo or enter details manually</div>';
       }
@@ -566,6 +629,147 @@ function pubHandleFiles(files){
     });
   };
   reader.readAsDataURL(file);
+}
+
+/* ── FORENSIC AUDIT v1 ─────────────────────────────────────── */
+var _pubFAState={merchant_id:null,grade:null,effective_rate:null,business_name:null,email:null};
+
+function pubFATierColor(tier){
+  if(tier==='excellent')return '#16a34a';
+  if(tier==='good')     return '#0c9b8a';
+  if(tier==='fair')     return '#d97706';
+  if(tier==='poor')     return '#dc2626';
+  if(tier==='critical') return '#991b1b';
+  return '#86868b';
+}
+
+function pubFAConfidenceMeta(conf){
+  if(conf==='certified')return{txt:'CERTIFIED · 4-AI CONSENSUS',bg:'#e8faf5',fg:'#0c9b8a'};
+  if(conf==='high')     return{txt:'HIGH CONFIDENCE',           bg:'#e8faf5',fg:'#0c9b8a'};
+  if(conf==='moderate') return{txt:'MODERATE CONFIDENCE',       bg:'#fef5e7',fg:'#d97706'};
+  if(conf==='review')   return{txt:'REVIEW RECOMMENDED',        bg:'#fef5f5',fg:'#dc2626'};
+  return{txt:'',bg:'#f5f5f7',fg:'#86868b'};
+}
+
+function pubRenderForensic(d){
+  var panel=pubEl('pub-forensic-panel');
+  if(!panel)return;
+
+  // Capture state for CTA handoff
+  _pubFAState.merchant_id    = d._merchant_id || null;
+  _pubFAState.grade          = d._grade || null;
+  _pubFAState.effective_rate = d.effective_rate || null;
+  _pubFAState.business_name  = d.business_name || (pubEl('c-name')?pubEl('c-name').value:'') || '';
+  _pubFAState.email          = (pubEl('c-email')?pubEl('c-email').value:'') || '';
+
+  var grade = d._grade;
+  var gradeTier = d._grade_tier || 'unknown';
+  var gradeLabel = d._grade_label || '';
+  var eff = d.effective_rate || 0;
+  var floor = d._market_floor || 2.87;
+  var ceil = d._market_ceiling || 4.35;
+  var overcharge = d._estimated_annual_overcharge || 0;
+  var findings = d.findings || [];
+  var findingsCount = d._findings_count || findings.length || 0;
+  var conf = d._confidence || 'unknown';
+
+  // Grade hero
+  var gradeEl = pubEl('pub-fa-grade');
+  if(grade){
+    gradeEl.textContent = grade;
+    gradeEl.style.color = pubFATierColor(gradeTier);
+  } else {
+    gradeEl.textContent = '—';
+    gradeEl.style.color = '#86868b';
+  }
+  pubEl('pub-fa-label').textContent = gradeLabel || 'Forensic analysis';
+  pubEl('pub-fa-position').textContent = grade
+    ? 'Based on your effective rate vs. US market band ('+floor.toFixed(2)+'% – '+ceil.toFixed(2)+'%)'
+    : 'We could not determine your effective rate from this statement. A NexusPay specialist can review it manually.';
+
+  // Confidence badge
+  var confBadge = pubEl('pub-fa-confidence');
+  var confMeta = pubFAConfidenceMeta(conf);
+  confBadge.textContent = confMeta.txt;
+  confBadge.style.background = confMeta.bg;
+  confBadge.style.color = confMeta.fg;
+  confBadge.style.display = confMeta.txt ? 'inline-block' : 'none';
+
+  // Rate position bar
+  var rateBar = pubEl('pub-fa-rate-bar');
+  if(grade && eff>0){
+    rateBar.style.display = 'block';
+    pubEl('pub-fa-yourrate').textContent = 'Your effective rate: '+eff.toFixed(2)+'%';
+    // Map rate (2.00% – 5.00%) to position 0%–100% on bar
+    var pct = ((eff - 2.00) / (5.00 - 2.00)) * 100;
+    if(pct<0)pct=0; if(pct>100)pct=100;
+    pubEl('pub-fa-marker').style.left = pct+'%';
+  } else {
+    rateBar.style.display = 'none';
+  }
+
+  // Annual overcharge
+  var oEl = pubEl('pub-fa-overcharge');
+  if(overcharge && overcharge >= 100){
+    oEl.style.display = 'block';
+    pubEl('pub-fa-overcharge-amt').textContent = '$'+Math.round(overcharge).toLocaleString();
+    pubEl('pub-fa-overcharge-mo').textContent = '~$'+Math.round(overcharge/12).toLocaleString()+'/month above market floor';
+  } else {
+    oEl.style.display = 'none';
+  }
+
+  // Findings (top 3 teaser)
+  var fwrap = pubEl('pub-fa-findings-wrap');
+  var flist = pubEl('pub-fa-findings-list');
+  if(findings && findings.length>0){
+    fwrap.style.display = 'block';
+    pubEl('pub-fa-findings-count').textContent = findingsCount;
+    flist.innerHTML = '';
+    var top3 = findings.slice(0,3);
+    top3.forEach(function(f){
+      var text = (typeof f==='string') ? f : (f && (f.description||f.message||JSON.stringify(f))) || '';
+      if(!text) return;
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:10px;padding:12px 14px;background:#fff;border-radius:10px;font-size:13px;color:#1d1d1f;line-height:1.5';
+      row.innerHTML = '<span style="color:#d97706;font-size:14px;flex-shrink:0">⚠</span><span>'+pubFAEscape(text)+'</span>';
+      flist.appendChild(row);
+    });
+    if(findings.length>3){
+      var more = document.createElement('div');
+      more.style.cssText = 'padding:10px 14px;font-size:12px;color:#86868b;text-align:center;font-style:italic';
+      more.textContent = '+ '+(findings.length-3)+' more in your full report';
+      flist.appendChild(more);
+    }
+  } else {
+    fwrap.style.display = 'none';
+  }
+
+  // Show panel + scroll into view
+  panel.style.display = 'block';
+  setTimeout(function(){
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }, 200);
+}
+
+function pubFAEscape(s){
+  if(s==null)return '';
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function pubFAFullReport(){
+  var url = 'https://nexuspayai.com/?signup=1';
+  if(_pubFAState.merchant_id){
+    url += '&audit_ref=' + encodeURIComponent(_pubFAState.merchant_id);
+  }
+  if(_pubFAState.email){
+    url += '&email=' + encodeURIComponent(_pubFAState.email);
+  }
+  if(_pubFAState.business_name){
+    url += '&business=' + encodeURIComponent(_pubFAState.business_name);
+  }
+  window.open(url, '_blank', 'noopener');
 }
 function pubCamera(){
   var inp=pubEl('pub-file-input');
