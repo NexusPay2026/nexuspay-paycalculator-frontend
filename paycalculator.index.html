@@ -376,18 +376,13 @@ button{-webkit-tap-highlight-color:transparent}
     ondragleave="this.style.borderColor='#d2d2d7';this.style.background='#fafafa'"
     ondrop="event.preventDefault();this.style.borderColor='#d2d2d7';this.style.background='#fafafa';pubHandleFiles(event.dataTransfer.files)">
     <div style="font-size:28px;margin-bottom:6px">📄</div>
-    <div style="font-size:15px;font-weight:600;color:#1d1d1f">Drop statement pages here or tap to browse</div>
-    <div style="font-size:13px;color:#86868b;margin-top:4px">Upload all pages — PDF, photos, or camera. Multi-page supported.</div>
-    <input type="file" id="pub-file-input" accept="image/*,.pdf" multiple style="display:none" onchange="pubHandleFiles(this.files)">
+    <div style="font-size:15px;font-weight:600;color:#1d1d1f">Drop your statement here or tap to browse</div>
+    <div style="font-size:13px;color:#86868b;margin-top:4px">PDF, image, or photo — AI reads it and fills in your details</div>
+    <input type="file" id="pub-file-input" accept="image/*,.pdf" capture="environment" style="display:none" onchange="pubHandleFiles(this.files)">
   </div>
-  <!-- Page thumbnails grid -->
-  <div id="pub-pages-grid" style="display:none;margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px"></div>
-  <div id="pub-page-count" style="display:none;font-size:12px;color:#86868b;margin-top:6px;text-align:center"></div>
-  <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
     <button onclick="pubEl('pub-file-input').click()" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:980px;border:none;background:#f5f5f7;color:#1d1d1f;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:44px">📁 Browse Files</button>
     <button onclick="pubCamera()" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:980px;border:none;background:#f5f5f7;color:#1d1d1f;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:44px">📷 Camera</button>
-    <button id="pub-clear-btn" onclick="pubClearPages()" style="display:none;padding:10px 20px;border-radius:980px;border:none;background:#fef5f5;color:#dc2626;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:44px">✕ Clear All</button>
-    <button id="pub-analyze-btn" onclick="pubAnalyzePages()" style="display:none;padding:10px 20px;border-radius:980px;border:none;background:#00c6ff;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:44px">▶ Analyze Statement</button>
   </div>
   <div id="pub-extract-status" style="margin-top:12px;text-align:center"></div>
 </div>
@@ -600,117 +595,40 @@ function pubLead(nm,vt,vol,curR,r,zip){var em=pubEl('c-email').value||'',ph=pubE
   try{fetch(PUB_API+'/api/leads/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({full_name:nm||'PriceTool',email:em||'noemail@pricetool.nexuspay',business_name:nm,phone:ph,message:'[PriceTool] '+PUB_M+' | Zip:'+zip+' | Vol:$'+pubFmt(vol,0)+' | Cur:'+curR.toFixed(2)+'% | NP:'+r.eff.toFixed(2)+'%'})}).catch(function(){});}catch(e){}}
 
 /* ── STATEMENT UPLOAD + 4-AI EXTRACTION ── */
-var _pubPages = []; // Multi-page collector
-
 function pubHandleFiles(files){
   if(!files||!files.length)return;
-  for(var i=0;i<files.length;i++){
-    var file=files[i];
-    if(file.size>25*1024*1024){pubToast('File too large — 25MB max: '+file.name);continue}
-    _pubAddPage(file);
-  }
-  // Reset input so same file can be re-added
-  var inp=pubEl('pub-file-input');
-  if(inp)inp.value='';
-}
-
-function _pubAddPage(file){
-  var idx=_pubPages.length;
-  var page={name:file.name,size:file.size,type:file.type||'image/jpeg',base64:null,ready:false};
-  _pubPages.push(page);
-  _pubUpdatePagesUI();
+  var file=files[0];
+  if(file.size>25*1024*1024){pubToast('File too large — 25MB max');return}
+  var status=pubEl('pub-extract-status');
+  status.innerHTML='<div style="padding:12px;background:#f0f7ff;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px"><div style="width:16px;height:16px;border:2px solid #d2d2d7;border-top-color:#00c6ff;border-radius:50%;animation:pulse-extract .6s linear infinite"></div><span style="font-size:13px;color:#1d1d1f;font-weight:500">Reading your statement with 4 AIs…</span></div>';
   var reader=new FileReader();
   reader.onload=function(e){
-    page.base64=e.target.result.split(',')[1];
-    page.ready=true;
-    _pubUpdatePagesUI();
+    var b64=e.target.result.split(',')[1];
+    var mt=file.type||'image/jpeg';
+    fetch(PUB_API+'/api/pricing-tool/public-extract',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({file_base64:b64,media_type:mt,file_name:file.name,business_name:pubEl('c-name').value||'',email:pubEl('c-email').value||'',phone:pubEl('c-phone').value||''})
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d.monthly_volume||d.effective_rate||d.business_name){
+        // Auto-fill fields
+        if(d.business_name){pubEl('c-name').value=d.business_name}
+        if(d.monthly_volume){pubEl('c-vol').value=Math.round(d.monthly_volume)}
+        if(d.transaction_count){pubEl('c-tx').value=Math.round(d.transaction_count)}
+        if(d.effective_rate){pubEl('c-cur').value=d.effective_rate.toFixed(2)}
+        if(d.industry){var sel=pubEl('c-vert');for(var i=0;i<sel.options.length;i++){if(sel.options[i].value.toLowerCase().indexOf(d.industry.toLowerCase())>=0){sel.selectedIndex=i;break}}}
+        var provs=d._providers||[];
+        status.innerHTML='<div style="padding:12px;background:#e8faf5;border-radius:12px;font-size:13px;color:#0c9b8a;font-weight:600">✓ Statement analyzed by '+provs.length+' AI'+(provs.length>1?'s':'')+' — fields auto-filled</div>';
+        pubCalc();
+        // Render forensic audit panel
+        try{ pubRenderForensic(d); }catch(err){ /* never break upload UX */ }
+      } else {
+        status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Could not read statement — try a clearer photo or enter details manually</div>';
+      }
+    }).catch(function(){
+      status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Upload failed — check connection and try again</div>';
+    });
   };
-  reader.onerror=function(){page.ready=true;_pubUpdatePagesUI();pubToast('Could not read: '+file.name)};
   reader.readAsDataURL(file);
-}
-
-function _pubUpdatePagesUI(){
-  var grid=pubEl('pub-pages-grid');
-  var count=pubEl('pub-page-count');
-  var clearBtn=pubEl('pub-clear-btn');
-  var analyzeBtn=pubEl('pub-analyze-btn');
-  if(!grid)return;
-  if(!_pubPages.length){
-    grid.style.display='none';
-    if(count)count.style.display='none';
-    if(clearBtn)clearBtn.style.display='none';
-    if(analyzeBtn)analyzeBtn.style.display='none';
-    return;
-  }
-  grid.style.display='grid';
-  if(count){count.style.display='block';count.textContent=_pubPages.length+' page'+(_pubPages.length>1?'s':'')+' — add more or tap Analyze'}
-  if(clearBtn)clearBtn.style.display='inline-flex';
-  var allReady=_pubPages.every(function(p){return p.ready});
-  if(analyzeBtn){analyzeBtn.style.display=allReady?'inline-flex':'none';analyzeBtn.textContent='▶ Analyze '+_pubPages.length+' Page'+(_pubPages.length>1?'s':'')}
-  grid.innerHTML=_pubPages.map(function(p,i){
-    var thumb;
-    if(p.type&&p.type.startsWith('image/')&&p.base64){
-      thumb='<img src="data:'+p.type+';base64,'+p.base64+'" style="width:100%;height:50px;object-fit:cover;border-radius:8px;opacity:'+(p.ready?'1':'.4')+'">';
-    }else if(p.type==='application/pdf'){
-      thumb='<div style="width:100%;height:50px;display:flex;align-items:center;justify-content:center;background:#f0f0f5;border-radius:8px;font-size:18px">📄</div>';
-    }else{
-      thumb='<div style="width:100%;height:50px;display:flex;align-items:center;justify-content:center;background:#f0f0f5;border-radius:8px;font-size:14px">⏳</div>';
-    }
-    return '<div style="position:relative;text-align:center">'+thumb+
-      '<div style="font-size:10px;color:#86868b;margin-top:2px">Pg '+(i+1)+'</div>'+
-      '<button onclick="_pubRemovePage('+i+')" style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:9px;border:none;background:#dc2626;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✕</button>'+
-    '</div>';
-  }).join('');
-}
-
-function _pubRemovePage(i){
-  _pubPages.splice(i,1);
-  _pubUpdatePagesUI();
-}
-
-function pubClearPages(){
-  _pubPages=[];
-  _pubUpdatePagesUI();
-  pubEl('pub-extract-status').innerHTML='';
-}
-
-function pubAnalyzePages(){
-  if(!_pubPages.length){pubToast('Upload at least one page');return}
-  if(!_pubPages.every(function(p){return p.ready})){pubToast('Pages still loading…');return}
-  var status=pubEl('pub-extract-status');
-  status.innerHTML='<div style="padding:12px;background:#f0f7ff;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px"><div style="width:16px;height:16px;border:2px solid #d2d2d7;border-top-color:#00c6ff;border-radius:50%;animation:pulse-extract .6s linear infinite"></div><span style="font-size:13px;color:#1d1d1f;font-weight:500">Reading '+_pubPages.length+' page'+(_pubPages.length>1?'s':'')+' with 4 AIs…</span></div>';
-  // Build files array for backend
-  var filesArr=_pubPages.map(function(p){return{base64:p.base64,type:p.type}});
-  // If single file, also send as file_base64 for backward compat
-  var body={
-    files:filesArr,
-    file_base64:_pubPages.length===1?_pubPages[0].base64:'',
-    media_type:_pubPages.length===1?_pubPages[0].type:'image/jpeg',
-    file_name:_pubPages.length===1?_pubPages[0].name:'multi-page',
-    business_name:pubEl('c-name').value||'',
-    email:pubEl('c-email').value||'',
-    phone:pubEl('c-phone').value||''
-  };
-  fetch(PUB_API+'/api/pricing-tool/public-extract',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(body)
-  }).then(function(r){return r.json()}).then(function(d){
-    if(d.monthly_volume||d.effective_rate||d.business_name){
-      if(d.business_name){pubEl('c-name').value=d.business_name}
-      if(d.monthly_volume){pubEl('c-vol').value=Math.round(d.monthly_volume)}
-      if(d.transaction_count){pubEl('c-tx').value=Math.round(d.transaction_count)}
-      if(d.effective_rate){pubEl('c-cur').value=d.effective_rate.toFixed(2)}
-      if(d.industry){var sel=pubEl('c-vert');for(var i=0;i<sel.options.length;i++){if(sel.options[i].value.toLowerCase().indexOf(d.industry.toLowerCase())>=0){sel.selectedIndex=i;break}}}
-      var provs=d._providers||[];
-      status.innerHTML='<div style="padding:12px;background:#e8faf5;border-radius:12px;font-size:13px;color:#0c9b8a;font-weight:600">✓ Statement analyzed by '+provs.length+' AI'+(provs.length>1?'s':'')+' — fields auto-filled</div>';
-      pubCalc();
-      try{pubRenderForensic(d);}catch(err){}
-    }else{
-      status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Could not read statement — try clearer photos or enter details manually</div>';
-    }
-  }).catch(function(){
-    status.innerHTML='<div style="padding:12px;background:#fef5f5;border-radius:12px;font-size:13px;color:#dc2626">Upload failed — check connection and try again</div>';
-  });
 }
 
 /* ── FORENSIC AUDIT v1 ─────────────────────────────────────── */
