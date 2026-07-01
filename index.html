@@ -855,21 +855,27 @@ function pubRenderForensic(d){
   });
   var buckets = {};
   CATS.forEach(function(c){ buckets[c.key] = {count:0, total:0, items:[]}; });
+  var grandTotals = [], seenGT = {};                                       // statement-wide rollups, shown once in a footer
   items.forEach(function(li){
+    var role = li.role || 'detail';                                        // legacy items (no role) count as detail
+    if(role === 'grand_total'){                                            // the WHOLE bill, not a category fee
+      var gk = (typeof li.amount === 'number') ? li.amount.toFixed(2) : (li.name||'');
+      if(!seenGT[gk]){ seenGT[gk] = true; grandTotals.push(li); }          // dedupe a repeated statement total
+      return;
+    }
     var c = (li.category||'misc').toLowerCase();
     if(!buckets[c]) c = 'misc';
-    var role = li.role || 'detail';                                        // legacy items (no role) count as detail
-    if(catSummary ? (role === 'detail') : true) buckets[c].items.push(li); // rows the list will render
+    buckets[c].items.push(li);                                             // FULL-A: render ALL rows (detail + subtotal)
     if(!catSummary) buckets[c].total += (typeof li.amount === 'number' ? li.amount : 0);  // fallback sum
+    if(role === 'detail') buckets[c].count += 1;                           // "(N)" / "fees found" = fee atoms only
   });
   CATS.forEach(function(c){
     var b = buckets[c.key];
     if(catSummary && catSummary[c.key] && typeof catSummary[c.key].total === 'number'){
-      b.total = catSummary[c.key].total;                                   // AUTHORITATIVE per-category total
+      b.total = catSummary[c.key].total;                                   // AUTHORITATIVE per-category total (scalar)
     }
-    b.count = b.items.length;                                              // "(N)" == detail rows actually displayed
   });
-  var totalShown = CATS.reduce(function(s,c){ return s + buckets[c.key].items.length; }, 0);
+  var totalShown = CATS.reduce(function(s,c){ return s + buckets[c.key].count; }, 0);  // fee atoms (excludes rollups)
 
   // Volume-tiered markup risk drives the processor category + markup callout color.
   var markupVal = procMarkup || buckets.processor.total || 0;
@@ -962,7 +968,9 @@ function pubRenderForensic(d){
       '</div>';
   } else { mkEl.style.display = 'none'; }
 
-  // Line-by-line breakdown — grouped; risk-colored headers; interchange collapsed by default
+  // Line-by-line breakdown — FULL detail: EVERY row shown (detail + subtotals). Rollup rows are
+  // visually marked (italic/muted + tag) so a subtotal never reads as an extra charge. All four
+  // categories are collapsible (consistent), expanded by default so every fee is visible on load.
   var liEl = pubEl('pub-fa-lineitems');
   if(hasItems){
     liEl.style.display = 'block';
@@ -970,25 +978,43 @@ function pubRenderForensic(d){
     presentCats.forEach(function(c){
       var b = buckets[c.key];
       var rk = catRisk(c.key);
-      var collapsed = (c.key === 'interchange');
       var rowsId = 'pub-fa-rows-'+c.key;
-      html += '<div'+(collapsed?' onclick="pubFAToggle(\''+rowsId+'\',this)" style="cursor:pointer;':' style="')+
+      html += '<div onclick="pubFAToggle(\''+rowsId+'\',this)" style="cursor:pointer;'+
               'display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #e5e5ea">'+
         '<span style="font-size:13px;font-weight:600;color:'+rk.color+'">'+
-          (collapsed?'<span data-caret style="display:inline-block;width:14px;color:#86868b">▸</span> ':'')+
+          '<span data-caret style="display:inline-block;width:14px;color:#86868b">▾</span> '+
           c.label+' ('+b.count+')</span>'+
         '<span style="font-size:13px;font-weight:600;color:#1d1d1f">$'+Math.round(b.total).toLocaleString()+'</span>'+
       '</div>';
-      html += '<div id="'+rowsId+'" style="display:'+(collapsed?'none':'block')+'">';
+      html += '<div id="'+rowsId+'" style="display:block">';
       b.items.forEach(function(it){
+        var role = it.role || 'detail';
+        var isRollup = (role === 'subtotal');                             // grand_total is pulled out to the footer
         var amt = (typeof it.amount === 'number') ? '$'+it.amount.toFixed(2) : '';
         var pg = it.page ? ' · p'+it.page : '';
-        html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid #e5e5ea;font-size:13px">'+
-          '<span style="color:#1d1d1f">'+pubFAEscape(it.name||'Fee')+'</span>'+
-          '<span style="color:#86868b;flex-shrink:0;white-space:nowrap">'+amt+pg+'</span>'+
-        '</div>';
+        if(isRollup){
+          // Subtotal of the rows in this group — NOT an additional charge. Muted + italic + tag.
+          html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid #e5e5ea;font-size:12px;font-style:italic;color:#86868b">'+
+            '<span>'+pubFAEscape(it.name||'Subtotal')+' <span style="font-style:normal;font-size:9px;letter-spacing:.04em;text-transform:uppercase;background:#f0f0f2;color:#86868b;border-radius:4px;padding:1px 5px;margin-left:4px">subtotal</span></span>'+
+            '<span style="flex-shrink:0;white-space:nowrap">'+amt+pg+'</span>'+
+          '</div>';
+        } else {
+          html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid #e5e5ea;font-size:13px">'+
+            '<span style="color:#1d1d1f">'+pubFAEscape(it.name||'Fee')+'</span>'+
+            '<span style="color:#86868b;flex-shrink:0;white-space:nowrap">'+amt+pg+'</span>'+
+          '</div>';
+        }
       });
       html += '</div>';
+    });
+    // Statement-total footer — grand_total rows are the WHOLE bill, not a category fee: show once, marked.
+    grandTotals.forEach(function(it){
+      var amt = (typeof it.amount === 'number') ? '$'+it.amount.toFixed(2) : '';
+      var pg = it.page ? ' · p'+it.page : '';
+      html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 2px 4px;margin-top:6px;border-top:2px solid #1d1d1f;font-size:13px;font-weight:700;color:#1d1d1f">'+
+        '<span>'+pubFAEscape(it.name||'Statement total')+' <span style="font-weight:600;font-size:9px;letter-spacing:.04em;text-transform:uppercase;background:#1d1d1f;color:#fff;border-radius:4px;padding:1px 5px;margin-left:4px">statement total</span></span>'+
+        '<span style="flex-shrink:0;white-space:nowrap">'+amt+pg+'</span>'+
+      '</div>';
     });
     liEl.innerHTML = html;
   } else { liEl.style.display = 'none'; }
