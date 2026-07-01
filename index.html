@@ -440,9 +440,17 @@ button{-webkit-tap-highlight-color:transparent}
     <!-- Line-by-line breakdown (every fee, grouped by category) -->
     <div id="pub-fa-lineitems" style="display:none"></div>
 
+    <!-- Cost-reduction / negotiation — compliance-reviewed copy (cash discount / dual pricing; conditional language) -->
+    <div style="background:#f5f5f7;border-radius:16px;padding:22px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#86868b;text-transform:uppercase;margin-bottom:8px">WHAT YOU CAN DO ABOUT IT</div>
+      <div style="font-size:18px;font-weight:600;color:#1d1d1f;margin-bottom:8px">You may qualify to keep more of every sale</div>
+      <div style="font-size:14px;color:#3d5068;line-height:1.6;margin-bottom:10px">A NexusPay specialist can review these fees line by line and negotiate your processor markup on your behalf. You may also qualify for cash discount or dual pricing programs designed to significantly reduce — or even eliminate — your processing fees.</div>
+      <div style="font-size:12px;color:#86868b">Programs available in all 50 states. Ask how much you could save.</div>
+    </div>
+
     <!-- CTA -->
     <div style="border-top:1px solid #e5e5ea;padding-top:20px;display:flex;flex-direction:column;gap:10px">
-      <button id="pub-fa-cta" onclick="pubFAFullReport()" style="background:#1d1d1f;color:#fff;border:none;border-radius:980px;padding:16px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:52px">Get Your Full Forensic Report  →</button>
+      <button id="pub-fa-cta" onclick="pubFAFullReport()" style="background:#1d1d1f;color:#fff;border:none;border-radius:980px;padding:16px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:52px">See If You Qualify  →</button>
       <div style="font-size:12px;color:#86868b;text-align:center;line-height:1.5">Free account unlocks all findings, downloadable PDF, and ongoing fee monitoring.</div>
     </div>
 
@@ -721,6 +729,26 @@ function pubFATierColor(tier){
   return '#86868b';
 }
 
+function pubMarkupRisk(markup, volume){
+  // Volume-tiered processor-markup risk (green/yellow/red), on the page's tier palette.
+  // Reflects standard merchant-services economics: a processor's markup as a % of volume
+  // should SHRINK as volume grows (fixed per-merchant costs amortize, larger merchants have
+  // pricing power), so a markup % that's normal at low volume is excessive at high volume —
+  // the red threshold therefore tightens as monthly_volume rises. markup_pct = markup/volume*100.
+  // If volume is unknown/zero, stay NEUTRAL (never red) so we don't mis-flag.
+  if(!volume || volume <= 0 || !markup || markup <= 0) return {tier:'neutral', color:'#86868b', tint:'#f5f5f7'};
+  var pct = (markup / volume) * 100;
+  var red, yellow;
+  if(volume < 50000)        { red=1.0;  yellow=0.6; }
+  else if(volume < 200000)  { red=0.7;  yellow=0.45; }
+  else if(volume < 1000000) { red=0.5;  yellow=0.35; }
+  else if(volume < 5000000) { red=0.35; yellow=0.25; }
+  else                      { red=0.25; yellow=0.18; }
+  if(pct >= red)    return {tier:'red',    color:'#dc2626', tint:'#fef5f5'};
+  if(pct >= yellow) return {tier:'yellow', color:'#d97706', tint:'#fef5e7'};
+  return                   {tier:'green',  color:'#16a34a', tint:'#e8faf5'};
+}
+
 function pubFAConfidenceMeta(conf){
   if(conf==='certified')return{txt:'CERTIFIED · 4-AI CONSENSUS',bg:'#e8faf5',fg:'#0c9b8a'};
   if(conf==='high')     return{txt:'HIGH CONFIDENCE',           bg:'#e8faf5',fg:'#0c9b8a'};
@@ -790,13 +818,14 @@ function pubRenderForensic(d){
   var items = Array.isArray(d.line_items) ? d.line_items : [];
   var hasItems = items.length > 0;
   var procMarkup = (typeof d.processor_markup === 'number') ? d.processor_markup : 0;
+  var vol = (typeof d.monthly_volume === 'number') ? d.monthly_volume : 0;
   var pageCount = d._pageCount || items.reduce(function(m,li){return Math.max(m, li.page||0)}, 0) || 1;
 
   var CATS = [
-    {key:'interchange', label:'INTERCHANGE',      sub:'Pass-through · non-negotiable', color:'#86868b', neg:false},
-    {key:'processor',   label:'PROCESSOR MARKUP', sub:'Negotiable',                    color:'#d97706', neg:true},
-    {key:'monthly',     label:'MONTHLY / FIXED',  sub:'Recurring',                     color:'#3d5068', neg:false},
-    {key:'misc',        label:'MISC / OTHER',     sub:'Other fees',                    color:'#86868b', neg:false}
+    {key:'interchange', label:'INTERCHANGE',      sub:'Pass-through · non-negotiable'},
+    {key:'processor',   label:'PROCESSOR MARKUP', sub:'Negotiable'},
+    {key:'monthly',     label:'MONTHLY / FIXED',  sub:'Recurring'},
+    {key:'misc',        label:'MISC / OTHER',     sub:'Worth reviewing'}
   ];
   var buckets = {};
   CATS.forEach(function(c){ buckets[c.key] = {count:0, total:0, items:[]}; });
@@ -808,17 +837,29 @@ function pubRenderForensic(d){
     buckets[c].items.push(li);
   });
 
+  // Volume-tiered markup risk drives the processor category + markup callout color.
+  var markupVal = procMarkup || buckets.processor.total || 0;
+  var markupRisk = pubMarkupRisk(markupVal, vol);
+  // Per-category risk color: interchange = pass-through (green/fine); processor = tiered
+  // markup risk; monthly = neutral/informational; misc = worth reviewing (yellow).
+  function catRisk(key){
+    if(key==='processor')   return markupRisk;
+    if(key==='interchange') return {tier:'green',   color:'#16a34a', tint:'#e8faf5'};
+    if(key==='misc')        return {tier:'yellow',  color:'#d97706', tint:'#fef5e7'};
+    return {tier:'neutral', color:'#86868b', tint:'#f5f5f7'};
+  }
+
   var isOverpaying = !!(overcharge && overcharge >= 100);
 
-  // Verdict band — honest dual-case framing
+  // Verdict band — honest dual-case framing (factual "above the market floor", not "overcharge")
   var vEl = pubEl('pub-fa-verdict');
   if(isOverpaying){
     vEl.style.display = 'block';
     vEl.innerHTML =
-      '<div style="padding:20px;background:#fff;border-radius:14px;text-align:center">'+
-        '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#86868b;text-transform:uppercase;margin-bottom:6px">ESTIMATED ANNUAL OVERCHARGE</div>'+
+      '<div style="padding:20px;background:#fef5f5;border-radius:14px;text-align:center">'+
+        '<div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#86868b;text-transform:uppercase;margin-bottom:6px">PER YEAR ABOVE THE MARKET FLOOR</div>'+
         '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:48px;line-height:1;color:#dc2626;letter-spacing:-.01em">$'+Math.round(overcharge).toLocaleString()+'</div>'+
-        '<div style="font-size:13px;color:#3d5068;margin-top:6px">~$'+Math.round(overcharge/12).toLocaleString()+'/month above the market floor</div>'+
+        '<div style="font-size:13px;color:#3d5068;margin-top:6px">~$'+Math.round(overcharge/12).toLocaleString()+'/month above the '+floor.toFixed(2)+'% market floor</div>'+
       '</div>';
   } else if(grade){
     vEl.style.display = 'block';
@@ -830,7 +871,7 @@ function pubRenderForensic(d){
       '</div>';
   } else { vEl.style.display = 'none'; }
 
-  // Fee count summary
+  // Fee count summary + risk legend
   var fcEl = pubEl('pub-fa-feecount');
   if(hasItems){
     fcEl.style.display = 'block';
@@ -838,10 +879,15 @@ function pubRenderForensic(d){
       '<div style="display:flex;align-items:baseline;gap:10px">'+
         '<span style="font-family:\'Bebas Neue\',sans-serif;font-size:40px;line-height:1;color:#1d1d1f">'+items.length+'</span>'+
         '<span style="font-size:14px;color:#3d5068">fees found across '+pageCount+' page'+(pageCount>1?'s':'')+'</span>'+
+      '</div>'+
+      '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#86868b;margin-top:10px">'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#16a34a;vertical-align:1px;margin-right:5px"></span>In line</span>'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#d97706;vertical-align:1px;margin-right:5px"></span>Worth reviewing</span>'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#dc2626;vertical-align:1px;margin-right:5px"></span>Above market</span>'+
       '</div>';
   } else { fcEl.style.display = 'none'; }
 
-  // Category breakdown (counts + $ totals)
+  // Category breakdown — counts + $ totals, risk color-coded
   var catEl = pubEl('pub-fa-categories');
   var presentCats = CATS.filter(function(c){ return buckets[c.key].count > 0; });
   if(hasItems && presentCats.length){
@@ -850,8 +896,10 @@ function pubRenderForensic(d){
     catEl.style.gap = '12px';
     catEl.innerHTML = presentCats.map(function(c){
       var b = buckets[c.key];
-      return '<div style="background:'+(c.neg?'#fff7ed':'#fff')+';border-radius:14px;padding:16px'+(c.neg?';border:2px solid #f3cd8f':'')+'">'+
-        '<div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:'+c.color+';text-transform:uppercase;margin-bottom:6px">'+c.label+'</div>'+
+      var rk = catRisk(c.key);
+      var attn = (rk.tier === 'yellow' || rk.tier === 'red');
+      return '<div style="background:'+(attn?rk.tint:'#fff')+';border-radius:14px;padding:16px">'+
+        '<div style="font-size:10px;font-weight:600;letter-spacing:.06em;color:'+rk.color+';text-transform:uppercase;margin-bottom:6px">'+c.label+'</div>'+
         '<div style="display:flex;align-items:baseline;gap:7px">'+
           '<span style="font-family:\'Bebas Neue\',sans-serif;font-size:30px;line-height:1;color:#1d1d1f">'+b.count+'</span>'+
           '<span style="font-size:14px;color:#3d5068">· $'+Math.round(b.total).toLocaleString()+'</span>'+
@@ -861,33 +909,37 @@ function pubRenderForensic(d){
     }).join('');
   } else { catEl.style.display = 'none'; }
 
-  // Negotiable markup callout — always shown when a markup figure exists (incl. good-rate)
+  // Markup callout — always shown when a markup figure exists; color = volume-tiered risk
   var mkEl = pubEl('pub-fa-markup');
-  var markupVal = procMarkup || buckets.processor.total || 0;
   if(markupVal > 0){
+    var mrTag = (markupRisk.tier==='red') ? ' · WELL ABOVE TYPICAL'
+              : (markupRisk.tier==='yellow') ? ' · ABOVE TYPICAL'
+              : (markupRisk.tier==='green') ? ' · IN LINE WITH YOUR VOLUME'
+              : '';
     mkEl.style.display = 'block';
     mkEl.innerHTML =
-      '<div style="background:#fff7ed;border-radius:14px;padding:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
+      '<div style="background:'+markupRisk.tint+';border-radius:14px;padding:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">'+
         '<div style="flex:1;min-width:150px">'+
-          '<div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#d97706;text-transform:uppercase;margin-bottom:4px">NEGOTIABLE PROCESSOR MARKUP</div>'+
-          '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:44px;line-height:1;color:#d97706">$'+Math.round(markupVal).toLocaleString()+'<span style="font-size:16px;color:#b3700f"> /mo</span></div>'+
+          '<div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:'+markupRisk.color+';text-transform:uppercase;margin-bottom:4px">PROCESSOR MARKUP'+mrTag+'</div>'+
+          '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:44px;line-height:1;color:'+markupRisk.color+'">$'+Math.round(markupVal).toLocaleString()+'<span style="font-size:16px;color:#86868b"> /mo</span></div>'+
         '</div>'+
-        '<div style="font-size:12px;color:#3d5068;max-width:220px;line-height:1.5">Profit added <strong>above</strong> your true cost — the part a better processor can reduce.</div>'+
+        '<div style="font-size:12px;color:#3d5068;max-width:220px;line-height:1.5">Profit added <strong>above</strong> your true cost — and typically the most negotiable part of your bill.</div>'+
       '</div>';
   } else { mkEl.style.display = 'none'; }
 
-  // Line-by-line breakdown — grouped by category; interchange collapsed by default
+  // Line-by-line breakdown — grouped; risk-colored headers; interchange collapsed by default
   var liEl = pubEl('pub-fa-lineitems');
   if(hasItems){
     liEl.style.display = 'block';
     var html = '<div style="font-size:11px;font-weight:600;letter-spacing:.06em;color:#86868b;text-transform:uppercase;margin-bottom:6px">LINE-BY-LINE BREAKDOWN</div>';
     presentCats.forEach(function(c){
       var b = buckets[c.key];
+      var rk = catRisk(c.key);
       var collapsed = (c.key === 'interchange');
       var rowsId = 'pub-fa-rows-'+c.key;
       html += '<div'+(collapsed?' onclick="pubFAToggle(\''+rowsId+'\',this)" style="cursor:pointer;':' style="')+
-              'display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid '+(c.neg?'#f3cd8f':'#e5e5ea')+'">'+
-        '<span style="font-size:13px;font-weight:600;color:'+c.color+'">'+
+              'display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #e5e5ea">'+
+        '<span style="font-size:13px;font-weight:600;color:'+rk.color+'">'+
           (collapsed?'<span data-caret style="display:inline-block;width:14px;color:#86868b">▸</span> ':'')+
           c.label+' ('+b.count+')</span>'+
         '<span style="font-size:13px;font-weight:600;color:#1d1d1f">$'+Math.round(b.total).toLocaleString()+'</span>'+
@@ -896,7 +948,7 @@ function pubRenderForensic(d){
       b.items.forEach(function(it){
         var amt = (typeof it.amount === 'number') ? '$'+it.amount.toFixed(2) : '';
         var pg = it.page ? ' · p'+it.page : '';
-        html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid #efeff2;font-size:13px">'+
+        html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid #e5e5ea;font-size:13px">'+
           '<span style="color:#1d1d1f">'+pubFAEscape(it.name||'Fee')+'</span>'+
           '<span style="color:#86868b;flex-shrink:0;white-space:nowrap">'+amt+pg+'</span>'+
         '</div>';
@@ -906,10 +958,10 @@ function pubRenderForensic(d){
     liEl.innerHTML = html;
   } else { liEl.style.display = 'none'; }
 
-  // CTA label adapts to the case
+  // CTA label adapts to the case (compliance-reviewed, hedged wording)
   var ctaBtn = pubEl('pub-fa-cta');
   if(ctaBtn){
-    ctaBtn.innerHTML = (isOverpaying ? 'Stop Overpaying — Get Your Full Report' : 'Get Your Full Forensic Report')+'  →';
+    ctaBtn.innerHTML = (isOverpaying ? 'See How Much You Could Save' : 'See If You Qualify')+'  →';
   }
 
   // Show panel + scroll into view
