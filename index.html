@@ -845,15 +845,31 @@ function pubRenderForensic(d){
     {key:'monthly',     label:'MONTHLY / FIXED',  sub:'Recurring'},
     {key:'misc',        label:'MISC / OTHER',     sub:'Worth reviewing'}
   ];
+  // Prefer the backend's AUTHORITATIVE category_summary; fall back to summing line_items only for
+  // older cached responses that lack it. When present, LIST detail atoms only (role === 'detail') —
+  // subtotal/grand_total rollup rows are omitted (they were the source of the double-count).
+  var catSummary = (d.category_summary && typeof d.category_summary === 'object') ? d.category_summary : null;
+  var discCats = {};
+  (Array.isArray(d.category_discrepancies) ? d.category_discrepancies : []).forEach(function(x){
+    if(x && x.category) discCats[String(x.category).toLowerCase()] = true;
+  });
   var buckets = {};
   CATS.forEach(function(c){ buckets[c.key] = {count:0, total:0, items:[]}; });
   items.forEach(function(li){
     var c = (li.category||'misc').toLowerCase();
     if(!buckets[c]) c = 'misc';
-    buckets[c].count++;
-    buckets[c].total += (typeof li.amount === 'number' ? li.amount : 0);
-    buckets[c].items.push(li);
+    var role = li.role || 'detail';                                        // legacy items (no role) count as detail
+    if(catSummary ? (role === 'detail') : true) buckets[c].items.push(li); // rows the list will render
+    if(!catSummary) buckets[c].total += (typeof li.amount === 'number' ? li.amount : 0);  // fallback sum
   });
+  CATS.forEach(function(c){
+    var b = buckets[c.key];
+    if(catSummary && catSummary[c.key] && typeof catSummary[c.key].total === 'number'){
+      b.total = catSummary[c.key].total;                                   // AUTHORITATIVE per-category total
+    }
+    b.count = b.items.length;                                              // "(N)" == detail rows actually displayed
+  });
+  var totalShown = CATS.reduce(function(s,c){ return s + buckets[c.key].items.length; }, 0);
 
   // Volume-tiered markup risk drives the processor category + markup callout color.
   var markupVal = procMarkup || buckets.processor.total || 0;
@@ -895,7 +911,7 @@ function pubRenderForensic(d){
     fcEl.style.display = 'block';
     fcEl.innerHTML =
       '<div style="display:flex;align-items:baseline;gap:10px">'+
-        '<span style="font-family:\'Bebas Neue\',sans-serif;font-size:40px;line-height:1;color:#1d1d1f">'+items.length+'</span>'+
+        '<span style="font-family:\'Bebas Neue\',sans-serif;font-size:40px;line-height:1;color:#1d1d1f">'+totalShown+'</span>'+
         '<span style="font-size:14px;color:#3d5068">fees found across '+pageCount+' page'+(pageCount>1?'s':'')+'</span>'+
       '</div>'+
       '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:#86868b;margin-top:10px">'+
@@ -907,7 +923,7 @@ function pubRenderForensic(d){
 
   // Category breakdown — counts + $ totals, risk color-coded
   var catEl = pubEl('pub-fa-categories');
-  var presentCats = CATS.filter(function(c){ return buckets[c.key].count > 0; });
+  var presentCats = CATS.filter(function(c){ return buckets[c.key].count > 0 || buckets[c.key].total > 0; });
   if(hasItems && presentCats.length){
     catEl.style.display = 'grid';
     catEl.style.gridTemplateColumns = 'repeat(auto-fit,minmax(140px,1fr))';
@@ -923,6 +939,7 @@ function pubRenderForensic(d){
           '<span style="font-size:14px;color:#3d5068">· $'+Math.round(b.total).toLocaleString()+'</span>'+
         '</div>'+
         '<div style="font-size:11px;color:#86868b;margin-top:4px">'+c.sub+'</div>'+
+        (discCats[c.key] ? '<div style="font-size:10px;color:#d97706;margin-top:4px">⚠ Figures need review</div>' : '')+
       '</div>';
     }).join('');
   } else { catEl.style.display = 'none'; }
