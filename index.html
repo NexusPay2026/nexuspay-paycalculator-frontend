@@ -328,10 +328,11 @@ button{-webkit-tap-highlight-color:transparent}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <!-- ZOOM CONTROLS -->
-<div class="zoom" role="group" aria-label="Text size" style="position:fixed;top:10px;right:10px;z-index:100;display:flex;gap:2px;background:var(--card);border:1px solid var(--b0);border-radius:8px;padding:2px;box-shadow:var(--shadow)">
-  <button onclick="zf(-1)" style="width:36px;height:36px;border:none;background:transparent;font-size:1rem;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">A−</button>
+<div id="pub-zoom" class="zoom" role="group" aria-label="Text size" style="position:fixed;top:10px;right:10px;z-index:100;display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--b0);border-radius:8px;padding:2px;box-shadow:var(--shadow)">
+  <span id="pub-zoom-grip" role="button" aria-label="Drag to move" title="Drag to move" style="display:flex;align-items:center;justify-content:center;width:22px;height:36px;cursor:grab;color:var(--t3);font-size:14px;line-height:1;letter-spacing:-3px;touch-action:none;user-select:none;-webkit-user-select:none">⋮⋮</span>
+  <button onclick="zf(-1)" style="width:36px;height:36px;border:none;background:transparent;font-size:16px;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">A−</button>
   <button onclick="zf(0)" style="width:36px;height:36px;border:none;background:transparent;font-size:11px;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">Aa</button>
-  <button onclick="zf(1)" style="width:36px;height:36px;border:none;background:transparent;font-size:1rem;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">A+</button>
+  <button onclick="zf(1)" style="width:36px;height:36px;border:none;background:transparent;font-size:16px;font-weight:700;color:var(--t2);cursor:pointer;border-radius:6px">A+</button>
 </div>
 <div id="pub-toast" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;z-index:200;display:none;background:#f0fdf8;border:1px solid #a7e0d0;color:var(--teal);box-shadow:var(--shadow)"></div>
 
@@ -450,7 +451,7 @@ button{-webkit-tap-highlight-color:transparent}
 
     <!-- CTA -->
     <div style="border-top:1px solid #e5e5ea;padding-top:20px;display:flex;flex-direction:column;gap:10px">
-      <button id="pub-fa-cta" onclick="pubFAFullReport()" style="background:#1d1d1f;color:#fff;border:none;border-radius:980px;padding:16px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:52px">See If You Qualify  →</button>
+      <button id="pub-fa-cta" onclick="pubFAFullReport()" style="background:#1d1d1f;color:#fff;border:none;border-radius:980px;padding:16px 28px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;min-height:52px">Get Your Full Forensic Report and Qualify  →</button>
       <div style="font-size:12px;color:#86868b;text-align:center;line-height:1.5">Free account unlocks all findings, downloadable PDF, and ongoing fee monitoring.</div>
     </div>
 
@@ -516,7 +517,24 @@ function pubEl(id){return document.getElementById(id)}
 function pubFmt(n,d){d=d===undefined?2:d;return n.toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
 function pubEsc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function pubToast(m){var e=pubEl('pub-toast');e.textContent=m;e.style.display='block';setTimeout(function(){e.style.display='none'},3000)}
-function zf(d){if(d===0)_pubFs=16;else _pubFs=Math.min(24,Math.max(12,_pubFs+(d*2)));document.documentElement.style.fontSize=_pubFs+'px'}
+function zf(d){if(d===0)_pubFs=16;else _pubFs=Math.min(24,Math.max(12,_pubFs+(d*2)));pubApplyFs()}
+// A-/Aa/A+ scale the CUSTOMER content via CSS zoom on #public-view. The content is sized in
+// absolute px, so changing the ROOT font-size only scaled rem-based elements (the A-/A+
+// buttons) and never the px content. zoom scales px AND reflows layout (unlike transform:scale).
+function pubApplyFs(){var pv=document.getElementById('public-view');if(pv)pv.style.zoom=(_pubFs/16).toFixed(4)}
+// Floatable/draggable zoom widget. Pointer events cover mouse+touch+pen on every platform; the
+// grip is a separate target (touch-action:none so touch-drag doesn't scroll the page) so the
+// A-/Aa/A+ buttons stay pure clicks; position is clamped to the viewport so it can't leave screen.
+function pubMakeDraggable(el,handle){
+  if(!el||!handle)return;
+  var dragging=false,moved=false,sx=0,sy=0,ox=0,oy=0;
+  function clampTo(x,y){var w=el.offsetWidth,h=el.offsetHeight;var mx=Math.max(0,window.innerWidth-w),my=Math.max(0,window.innerHeight-h);return[Math.max(0,Math.min(mx,x)),Math.max(0,Math.min(my,y))]}
+  handle.addEventListener('pointerdown',function(e){dragging=true;moved=true;var r=el.getBoundingClientRect();el.style.left=r.left+'px';el.style.top=r.top+'px';el.style.right='auto';el.style.bottom='auto';sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;try{handle.setPointerCapture(e.pointerId)}catch(_){}handle.style.cursor='grabbing';e.preventDefault()});
+  handle.addEventListener('pointermove',function(e){if(!dragging)return;var p=clampTo(ox+(e.clientX-sx),oy+(e.clientY-sy));el.style.left=p[0]+'px';el.style.top=p[1]+'px';e.preventDefault()});
+  function end(e){if(!dragging)return;dragging=false;handle.style.cursor='grab';try{handle.releasePointerCapture(e.pointerId)}catch(_){}}
+  handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
+  window.addEventListener('resize',function(){if(!moved)return;var p=clampTo(parseFloat(el.style.left)||0,parseFloat(el.style.top)||0);el.style.left=p[0]+'px';el.style.top=p[1]+'px'});
+}
 function pubMktR(z){if(z&&z.length>=3){var r=PUB_ZIP[z.substring(0,3)];if(r)return r}return 3.61}
 function pubPick(el){document.querySelectorAll('#pub-mtabs .mtab').forEach(function(t){t.classList.remove('active')});el.classList.add('active');PUB_M=el.dataset.m;pubEl('pub-mdesc').textContent=PUB_MDESC[PUB_M]||'';pubRInp();pubCalc()}
 function pubRInp(){var h='';
@@ -574,7 +592,7 @@ function pubRProp(vt,vol,tx,curR,curMo,r,sav,mdl,mkt,zip){
   if(sav>0)h+='<div style="text-align:center;padding:16px;background:linear-gradient(135deg,#e6f7f2,#e8f0fe);border-radius:10px;margin:16px 0;border:1px solid #a7e0d0"><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.1em">PROJECTED ANNUAL SAVINGS</div><div style="font-family:var(--display);font-size:40px;color:var(--green);letter-spacing:.02em">$'+pubFmt(sav*12,0)+'</div><div style="font-size:13px;color:var(--t2);margin-top:4px">$'+pubFmt(sav)+' back in your pocket every month</div></div>';
   h+='<div id="pub-ai-out"></div>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px"><button class="act-btn act-gen" onclick="pubAI()">🧠 AI Proposal (4 AIs)</button><button class="act-btn act-email" onclick="pubEmail()">✉️ Email</button><button class="act-btn act-view" onclick="window.print()">🖨 Print</button><button class="act-btn act-email" onclick="pubPDF()">⬇ PDF</button><button class="act-btn act-view" onclick="pubCopy()">📋 Copy</button></div>';
-  h+='<div style="font-size:10px;color:var(--t4);margin-top:14px;padding:10px;background:var(--card2);border-radius:6px;line-height:1.5">Based on your stated details. Final rates subject to underwriting and processor approval. NexusPay is a registered sub-ISO of Beacon Payments.</div></div>';
+  h+='<div style="font-size:10px;color:var(--t4);margin-top:14px;padding:10px;background:var(--card2);border-radius:6px;line-height:1.5">Based on your stated details. Final rates subject to underwriting and processor approval.</div></div>';
   pubEl('pub-prop').innerHTML=h;pubLead(nm,vt,vol,curR,r,zip)}
 function pubAI(){var el=pubEl('pub-ai-out');if(!el)return;
   el.innerHTML='<div style="text-align:center;padding:16px"><div style="width:20px;height:20px;border:2px solid var(--b0);border-top-color:var(--blue);border-radius:50%;animation:pulse-extract .6s linear infinite;margin:0 auto"></div><div style="font-size:11px;color:var(--t3);margin-top:6px;font-family:var(--mono)">Running Claude + GPT-4o + Gemini + Grok…</div></div>';
@@ -961,7 +979,7 @@ function pubRenderForensic(d){
   // CTA label adapts to the case (compliance-reviewed, hedged wording)
   var ctaBtn = pubEl('pub-fa-cta');
   if(ctaBtn){
-    ctaBtn.innerHTML = (isOverpaying ? 'See How Much You Could Save' : 'See If You Qualify')+'  →';
+    ctaBtn.innerHTML = (isOverpaying ? 'See How Much You Could Save — and Qualify' : 'Get Your Full Forensic Report and Qualify')+'  →';
   }
 
   // Show panel + scroll into view
@@ -1009,11 +1027,12 @@ function pubCamera(){
 
 /* ── VIEW TOGGLE ── */
 function showStaffLogin(){document.getElementById('public-view').style.display='none';document.getElementById('app').style.display='block';document.documentElement.style.background='var(--bg)'}
-function showPublicView(){document.getElementById('app').style.display='none';document.getElementById('public-view').style.display='block';document.documentElement.style.background='#ffffff';document.documentElement.style.fontSize=_pubFs+'px'}
+function showPublicView(){document.getElementById('app').style.display='none';document.getElementById('public-view').style.display='block';document.documentElement.style.background='#ffffff';pubApplyFs()}
 
 /* Init customer view */
 document.documentElement.style.background='#ffffff';
 pubRInp();pubEl('pub-mdesc').textContent=PUB_MDESC[PUB_M]||'';pubCalc();
+pubApplyFs();pubMakeDraggable(document.getElementById('pub-zoom'),document.getElementById('pub-zoom-grip'));
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 
